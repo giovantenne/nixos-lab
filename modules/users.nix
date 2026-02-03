@@ -1,0 +1,28 @@
+{ ... }:
+
+{
+  users.users.admin = {
+    isNormalUser = true;
+    description = "admin";
+    extraGroups = [ "networkmanager" "wheel" "docker" ];
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHZn4yG1+sFGHU8hMnvH5N+HHsGhDpXcgrHUDldvs9+a admin@pc01"
+    ];
+  };
+
+  users.users.informatica = {
+    isNormalUser = true;
+    description = "informatica";
+    extraGroups = [ "networkmanager" ];
+    hashedPassword = "!";
+  };
+
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "informatica";
+
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.backupFileExtension = "hm-bak";
+  home-manager.users.admin = import ./home-admin.nix;
+  home-manager.users.informatica = import ./home-informatica.nix;
+}
