@@ -20,7 +20,7 @@
       pcNumbers = builtins.genList (n: n + 1) 31;
       padNumber = n: if n < 10 then "0${toString n}" else toString n;
       labSettings = {
-        laptopIp = "10.22.9.31";
+        masterIp = "MASTER_IP";  # Replace with actual IP before building netboot
         cachePublicKey = "lab-cache-key:jJsA9nDLNlyzhBOj5rfSKcEL2IwNspxrbNCyqmvdUvI=";
         cachePort = 8080;
       };

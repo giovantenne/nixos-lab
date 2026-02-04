@@ -16,5 +16,13 @@ fi
 PC_ID=$(printf "%02d" "$PC_NUMBER")
 PC_NAME="pc${PC_ID}"
 
+# Extract masterIp from flake.nix
+MASTER_IP=$(grep 'masterIp' flake.nix | sed 's/.*"\(.*\)".*/\1/')
+
+if [[ "$MASTER_IP" == "MASTER_IP" || -z "$MASTER_IP" ]]; then
+  echo "Error: masterIp not configured in flake.nix" >&2
+  exit 1
+fi
+
 sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko ./disko-config.nix
-sudo nixos-install --flake .#"${PC_NAME}" --substituter http://10.22.9.31:8080 --no-substitutes
+sudo nixos-install --flake .#"${PC_NAME}" --substituter "http://${MASTER_IP}:8080" --no-substitutes
