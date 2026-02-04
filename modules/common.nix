@@ -12,6 +12,7 @@
   # Enable networking
   networking.networkmanager.enable = true;
   networking.firewall.allowedTCPPorts = [ 3000 5000 8080 ];
+  networking.firewall.allowedUDPPorts = [ 67 68 69 4011 ];
 
   # Set your time zone.
   time.timeZone = "Europe/Rome";
