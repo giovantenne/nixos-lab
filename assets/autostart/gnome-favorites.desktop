@@ -1,8 +1,9 @@
 [Desktop Entry]
 Type=Application
 Name=Set GNOME Favorites
-Exec=/bin/bash -lc "sleep 3; /home/informatica/.config/autostart/set-gnome-favorites.sh"
+Exec=/home/informatica/.config/autostart/set-gnome-favorites.sh
 X-GNOME-Autostart-enabled=true
 X-GNOME-Autostart-Delay=3
+X-GNOME-Autostart-Phase=Application
 OnlyShowIn=GNOME;
 NoDisplay=true

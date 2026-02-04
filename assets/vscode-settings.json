@@ -6,6 +6,8 @@
   "extensions.autoUpdate": false,
   "java.jdt.ls.java.home": "/run/current-system/sw/lib/openjdk",
   "workbench.startupEditor": "none",
+  "workbench.welcomePage.enabled": false,
   "workbench.welcomePage.walkthroughs.openOnStartup": false,
+  "workbench.welcomePage.walkthroughs.enabled": false,
   "workbench.tips.enabled": false
 }
