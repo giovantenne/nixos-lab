@@ -13,6 +13,22 @@ echo "Creating home template..."
 rm -rf "$TEMPLATE_DIR"
 mkdir -p "$TEMPLATE_DIR"
 
+# Create .bashrc that sources system profile
+cat > "$TEMPLATE_DIR/.bashrc" << 'EOF'
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+  . /etc/bashrc
+fi
+EOF
+
+# Create .profile for login shells
+cat > "$TEMPLATE_DIR/.profile" << 'EOF'
+# Source bashrc
+if [ -f ~/.bashrc ]; then
+  . ~/.bashrc
+fi
+EOF
+
 # Create .gitconfig
 cat > "$TEMPLATE_DIR/.gitconfig" << EOF
 [user]
