@@ -1,28 +1,84 @@
-# NixOS flake layout (lab-nixos)
+# NixOS Lab Deployment (Zero-Internet Workflow)
+This repository manages a 31-PC NixOS lab, optimized for network installation (Netboot) with no internet access and a laptop acting as the local controller.
 
-## Hosts
-Each host has its own directory under `hosts/`:
-- `hosts/pc01/`
-- `hosts/pc02/` (template)
+## Architecture
+- Controller (Laptop): `PXE/Netboot`, local `binary cache`, `Colmena` orchestration.
+- Nodes (Lab PCs): 31 workstations with `Btrfs` + `Impermanence` (root reset on every reboot).
+- Networking: installs and updates over `LAN` only, no internet on PCs.
 
-### Hardware config
-`hardware-configuration.nix` is machine-specific and must be generated on each host:
+## 1. Parameters to confirm
+Verify the values in `flake.nix` (`labSettings` block) before deployment:
 
-```sh
-sudo nixos-generate-config --show-hardware-config > /etc/nixos/hosts/<host>/hardware-configuration.nix
+```nix
+labSettings = {
+  laptopIp = "10.22.9.31";
+  cachePublicKey = "lab-cache-key:jJsA9nDLNlyzhBOj5rfSKcEL2IwNspxrbNCyqmvdUvI=";
+  cachePort = 8080;
+};
 ```
 
-Commit each host’s hardware file (it is required to boot that host).
-
-## Rebuild
-Use flakes only:
+## 2. Prepare the controller (Laptop)
+Build the netboot artifacts:
 
 ```sh
-sudo nixos-rebuild switch --flake /etc/nixos#pc01
+nix build .#nixosConfigurations.netboot.config.system.build.netbootRamdisk
 ```
 
-## Regenerate pc01 hardware
+## 3. First setup at school (master PC)
+Bootstrap the master PC (`pc31`) from a USB installer, using temporary internet access on the first boot.
+
+From the live USB:
+```sh
+sudo nixos-install --flake github:giovantenne/nixos-lab#pc31
+```
+
+After the first reboot:
+```sh
+git clone https://github.com/giovantenne/nixos-lab.git ~/nixos-config
+cd ~/nixos-config
+```
+
+Then copy the private key for the local binary cache into place on the master PC.
+
+## 4. Network install (PXE/Netboot)
+Start the local services:
 
 ```sh
-sudo nixos-generate-config --show-hardware-config > /etc/nixos/hosts/pc01/hardware-configuration.nix
+sudo nix run nixpkgs#pixiecore -- --bzImage ./result/bzImage --initrd ./result/initrd --dhcp-no-bind
+nix run nixpkgs#harmonia -- --address 0.0.0.0 --port 8080
+```
+
+On the netboot RAMDisk, run:
+
+```sh
+cd /installer/repo
+sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko ./disko-config.nix
+sudo nixos-install --flake .#pcXX --substituter http://10.22.9.31:8080 --no-substitutes
+```
+
+## 5. Partitioning (Disko)
+Declarative config is in `disko-config.nix` with Btrfs subvolumes:
+
+```text
+@root    -> /
+@nix     -> /nix
+@persist -> /persist
+```
+
+Target disk: `/dev/sda` with Btrfs label `nixos`.
+
+## 6. Impermanence and persistence
+Root is rolled back on every boot (Btrfs rollback). Only these paths persist:
+
+```text
+/persist/etc/nixos
+/persist/etc/ssh
+/persist/home/informatica/.config/Code
+```
+
+## 7. Post-install management (Colmena)
+The laptop acts as the control node and pushes via SSH:
+
+```sh
+colmena apply --on @lab
 ```
