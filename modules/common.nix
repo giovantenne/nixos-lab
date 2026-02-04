@@ -253,7 +253,10 @@
     path = [ pkgs.glib pkgs.gsettings-desktop-schemas ];
   };
 
-  services.openssh.enable = true;
+  services.openssh = {
+    enable = true;
+    settings.PasswordAuthentication = false;
+  };
 
   system.stateVersion = "25.11";
 
