@@ -6,25 +6,7 @@ This repository manages a 31-PC NixOS lab, optimized for network installation (N
 - Nodes (Lab PCs): 31 workstations with `Btrfs` + `Impermanence` (root reset on every reboot).
 - Networking: installs and updates over `LAN` only, no internet on PCs.
 
-## 1. Parameters to confirm
-Verify the values in `flake.nix` (`labSettings` block) before deployment:
-
-```nix
-labSettings = {
-  laptopIp = "10.22.9.31";
-  cachePublicKey = "lab-cache-key:jJsA9nDLNlyzhBOj5rfSKcEL2IwNspxrbNCyqmvdUvI=";
-  cachePort = 8080;
-};
-```
-
-## 2. Prepare the controller (Laptop)
-Build the netboot artifacts:
-
-```sh
-nix build .#nixosConfigurations.netboot.config.system.build.netbootRamdisk
-```
-
-## 3. First setup at school (master PC)
+## 1. First setup at school (master PC)
 Bootstrap the master PC (`pc31`) from a USB installer, using temporary internet access on the first boot.
 
 From the live USB:
@@ -40,7 +22,14 @@ cd ~/nixos-config
 
 Then copy the private key for the local binary cache into place on the master PC.
 
-## 4. Network install (PXE/Netboot)
+## 2. Prepare the controller (Laptop)
+Build the netboot artifacts:
+
+```sh
+nix build .#nixosConfigurations.netboot.config.system.build.netbootRamdisk
+```
+
+## 3. Network install (PXE/Netboot)
 Start the local services:
 
 ```sh
@@ -56,7 +45,7 @@ sudo nix --extra-experimental-features "nix-command flakes" run github:nix-commu
 sudo nixos-install --flake .#pcXX --substituter http://10.22.9.31:8080 --no-substitutes
 ```
 
-## 5. Partitioning (Disko)
+## 4. Partitioning (Disko)
 Declarative config is in `disko-config.nix` with Btrfs subvolumes:
 
 ```text
@@ -67,7 +56,7 @@ Declarative config is in `disko-config.nix` with Btrfs subvolumes:
 
 Target disk: `/dev/sda` with Btrfs label `nixos`.
 
-## 6. Impermanence and persistence
+## 5. Impermanence and persistence
 Root is rolled back on every boot (Btrfs rollback). Only these paths persist:
 
 ```text
@@ -76,7 +65,7 @@ Root is rolled back on every boot (Btrfs rollback). Only these paths persist:
 /persist/home/informatica/.config/Code
 ```
 
-## 7. Post-install management (Colmena)
+## 6. Post-install management (Colmena)
 The laptop acts as the control node and pushes via SSH:
 
 ```sh
