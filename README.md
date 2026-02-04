@@ -23,7 +23,7 @@ git clone https://github.com/giovantenne/nixos-lab.git ~/nixos-config
 cd ~/nixos-config
 ```
 
-Copy the private key (`secret-key`) for the local binary cache into place (e.g., `~/nixos-config/secret-key`).
+Copy the private key (`secret-key`) for the local binary cache into the repo folder (`~/nixos-config/secret-key`). It is already in `.gitignore`.
 
 ## 2. Prepare the controller (pc31)
 First, update the master IP in `flake.nix` (`labSettings.masterIp`) with the actual IP assigned to `pc31`.
@@ -39,7 +39,7 @@ Start the local services:
 
 ```sh
 sudo nix run nixpkgs#pixiecore -- --bzImage ./result/bzImage --initrd ./result/initrd --dhcp-no-bind
-nix run nixpkgs#harmonia -- --address 0.0.0.0 --port 8080
+nix run nixpkgs#harmonia -- --address 0.0.0.0 --port 8080 --secret-key ./secret-key
 ```
 
 On the netboot RAMDisk, run:
