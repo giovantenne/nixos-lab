@@ -6,24 +6,8 @@ in
   boot.supportedFilesystems = [ "btrfs" ];
   boot.initrd.supportedFilesystems = [ "btrfs" ];
 
-  fileSystems."/" = lib.mkForce {
-    device = btrfsDevice;
-    fsType = "btrfs";
-    options = [ "subvol=@root" "compress=zstd" "noatime" ];
-  };
-
-  fileSystems."/nix" = {
-    device = btrfsDevice;
-    fsType = "btrfs";
-    options = [ "subvol=@nix" "compress=zstd" "noatime" ];
-  };
-
-  fileSystems."/persist" = {
-    device = btrfsDevice;
-    fsType = "btrfs";
-    options = [ "subvol=@persist" "compress=zstd" "noatime" ];
-    neededForBoot = true;
-  };
+  # Mark /persist as neededForBoot for impermanence
+  fileSystems."/persist".neededForBoot = true;
 
   boot.initrd.postDeviceCommands = lib.mkAfter ''
     mkdir -p /mnt
@@ -40,8 +24,7 @@ in
   systemd.services.create-root-blank = {
     description = "Create Btrfs clean root snapshot";
     wantedBy = [ "multi-user.target" ];
-    after = [ "local-fs.target" "persist.mount" ];
-    requires = [ "persist.mount" ];
+    after = [ "local-fs.target" ];
     serviceConfig = {
       Type = "oneshot";
     };
