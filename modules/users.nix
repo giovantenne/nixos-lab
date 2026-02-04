@@ -24,5 +24,5 @@
   home-manager.useUserPackages = true;
   home-manager.backupFileExtension = "hm-bak";
   home-manager.users.admin = import ./home-admin.nix;
-  home-manager.users.informatica = import ./home-informatica.nix;
+  # informatica home is managed by home-reset.nix (no symlinks)
 }

@@ -1,16 +1,13 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
+let
+  # Shared settings - also used by home-reset.nix for informatica template
+  vscodeSettings = builtins.fromJSON (builtins.readFile ../assets/vscode-settings.json);
+in
 {
   programs.vscode = {
     enable = true;
-    profiles.default.userSettings = {
-      "update.mode" = "none";
-      "update.enableWindowsBackgroundUpdates" = false;
-      "update.showReleaseNotes" = false;
-      "extensions.autoCheckUpdates" = false;
-      "extensions.autoUpdate" = false;
-      "java.jdt.ls.java.home" = "/run/current-system/sw/lib/openjdk";
-    };
+    profiles.default.userSettings = vscodeSettings;
   };
 
   programs.bash.enable = true;

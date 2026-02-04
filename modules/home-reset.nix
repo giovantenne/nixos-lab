@@ -21,6 +21,7 @@ let
   createTemplateScript = ../assets/create-home-template.sh;
   homeResetScript = ../assets/home-reset.sh;
   installExtensionsScript = ../assets/install-vscode-extensions.sh;
+  assetsDir = ../assets;
 
   extensionsList = lib.concatStringsSep " " vscodeExtensions;
 
@@ -30,7 +31,7 @@ in
   system.activationScripts.createHomeTemplate = {
     text = ''
       # Create base template
-      ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDir}" "${gitConfig.name}" "${gitConfig.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update"
+      ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDir}" "${gitConfig.name}" "${gitConfig.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}" "${pkgs.dconf}/bin/dconf"
       
       # Install VS Code extensions
       ${pkgs.bash}/bin/bash ${installExtensionsScript} "${templateDir}/.vscode/extensions" "${pkgs.vscode}/bin/code" ${extensionsList}

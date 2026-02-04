@@ -1,0 +1,8 @@
+{
+  "update.mode": "none",
+  "update.enableWindowsBackgroundUpdates": false,
+  "update.showReleaseNotes": false,
+  "extensions.autoCheckUpdates": false,
+  "extensions.autoUpdate": false,
+  "java.jdt.ls.java.home": "/run/current-system/sw/lib/openjdk"
+}
