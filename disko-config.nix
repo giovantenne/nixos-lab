@@ -8,14 +8,8 @@
         type = "gpt";
         partitions = {
           boot = {
-            size = "1G";
-            type = "EF00";
-            content = {
-              type = "filesystem";
-              format = "vfat";
-              mountpoint = "/boot";
-              mountOptions = [ "umask=0077" ];
-            };
+            size = "1M";
+            type = "EF02";  # BIOS boot partition
           };
           root = {
             size = "100%";
@@ -25,18 +19,17 @@
               subvolumes = {
                 "@root" = {
                   mountpoint = "/";
-                  mountOptions = [ "compress=zstd" "noatime" "subvol=@root" ];
+                  mountOptions = [ "compress=zstd" "noatime" ];
                 };
                 "@nix" = {
                   mountpoint = "/nix";
-                  mountOptions = [ "compress=zstd" "noatime" "subvol=@nix" ];
+                  mountOptions = [ "compress=zstd" "noatime" ];
                 };
                 "@persist" = {
                   mountpoint = "/persist";
-                  mountOptions = [ "compress=zstd" "noatime" "subvol=@persist" ];
+                  mountOptions = [ "compress=zstd" "noatime" ];
                 };
                 "@root-blank" = {
-                  mountpoint = null;
                 };
               };
             };
