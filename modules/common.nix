@@ -55,6 +55,14 @@
     [org.gnome.desktop.default-applications.terminal]
     exec='ghostty'
     exec-arg='--'
+
+    [org.gnome.desktop.wm.keybindings]
+    maximize=['<Super>Up']
+    unmaximize=['<Super>Down']
+
+    [org.gnome.mutter.keybindings]
+    toggle-tiled-left=['<Super>Left']
+    toggle-tiled-right=['<Super>Right']
   '';
 
   # Disable GNOME initial setup and welcome
