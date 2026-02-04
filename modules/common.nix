@@ -129,7 +129,6 @@
 
   # Shell tooling and prompt.
   programs.starship.enable = true;
-  programs.starship.enableBashIntegration = true;
   programs.bash.shellAliases = {
     ls = "eza --group-directories-first";
     lsa = "eza -a --group-directories-first";
@@ -140,6 +139,7 @@
   programs.bash.interactiveShellInit = ''
     source ${pkgs.fzf}/share/fzf/key-bindings.bash
     source ${pkgs.fzf}/share/fzf/completion.bash
+    eval "$(starship init bash)"
   '';
   programs.zoxide.enable = true;
   programs.zoxide.enableBashIntegration = true;
