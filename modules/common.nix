@@ -139,7 +139,9 @@
   programs.bash.interactiveShellInit = ''
     source ${pkgs.fzf}/share/fzf/key-bindings.bash
     source ${pkgs.fzf}/share/fzf/completion.bash
-    eval "$(starship init bash)"
+    if command -v starship >/dev/null 2>&1; then
+      eval "$(starship init bash)"
+    fi
   '';
   programs.zoxide.enable = true;
   programs.zoxide.enableBashIntegration = true;
@@ -154,6 +156,7 @@
     eza
     fd
     fzf
+    starship
     ghostty
     git
     vscode

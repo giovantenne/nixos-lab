@@ -39,12 +39,12 @@ in
     text = ''
       # Create informatica template
       ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDirInformatica}" "${gitConfigInformatica.name}" "${gitConfigInformatica.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}"
-      ${pkgs.bash}/bin/bash ${installExtensionsScript} "${templateDirInformatica}/.vscode/extensions" "${pkgs.vscode}/bin/code" ${extensionsList}
+      ${pkgs.bash}/bin/bash ${installExtensionsScript} "${templateDirInformatica}" "${pkgs.vscode}/bin/code" ${extensionsList}
       chown -R informatica:users "${templateDirInformatica}"
 
       # Create admin template
       ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDirAdmin}" "${gitConfigAdmin.name}" "${gitConfigAdmin.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}"
-      ${pkgs.bash}/bin/bash ${installExtensionsScript} "${templateDirAdmin}/.vscode/extensions" "${pkgs.vscode}/bin/code" ${extensionsList}
+      ${pkgs.bash}/bin/bash ${installExtensionsScript} "${templateDirAdmin}" "${pkgs.vscode}/bin/code" ${extensionsList}
       chown -R admin:users "${templateDirAdmin}"
 
       # Setup admin home (once, not reset at boot)
