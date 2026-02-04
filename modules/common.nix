@@ -148,10 +148,14 @@
   programs.starship.settings = {
     add_newline = false;
     command_timeout = 200;
-    format = "$directory$git_branch$git_status$character";
+    format = "$hostname$directory$git_branch$git_status$character";
     character = {
       error_symbol = "[✗](bold cyan)";
       success_symbol = "[❯](bold cyan)";
+    };
+    hostname = {
+      ssh_only = false;
+      format = "[$hostname](bold yellow):";
     };
     directory = {
       truncation_length = 2;
