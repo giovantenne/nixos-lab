@@ -61,8 +61,8 @@
           modules = [
             "${nixpkgs}/nixos/modules/installer/netboot/netboot-minimal.nix"
             ./modules/cache.nix
-            ({ pkgs, ... }: {
-              networking.useDHCP = true;
+            ({ pkgs, lib, ... }: {
+              networking.useDHCP = lib.mkForce true;
               services.openssh.enable = true;
               system.stateVersion = "25.11";
               system.activationScripts.copyFlakeToRamdisk.text = ''
