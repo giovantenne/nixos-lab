@@ -144,9 +144,7 @@
   programs.bash.interactiveShellInit = ''
     source ${pkgs.fzf}/share/fzf/key-bindings.bash
     source ${pkgs.fzf}/share/fzf/completion.bash
-    if command -v starship >/dev/null 2>&1; then
-      eval "$(starship init bash)"
-    fi
+    export STARSHIP_CONFIG=/etc/xdg/starship.toml
   '';
   programs.zoxide.enable = true;
   programs.zoxide.enableBashIntegration = true;
