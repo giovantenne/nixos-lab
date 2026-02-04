@@ -52,8 +52,8 @@ Start the local services in two separate terminals:
 # Terminal 1: PXE server
 sudo nix run nixpkgs#pixiecore -- boot ./result/bzImage ./result/initrd --dhcp-no-bind
 
-# Terminal 2: Binary cache
-nix run nixpkgs#harmonia -- -b 0.0.0.0:8080 --secret-key-file ./secret-key
+# Terminal 2: Binary cache (defaults to port 5000)
+nix run nixpkgs#harmonia -- --secret-key-file ./secret-key
 
 # If harmonia flags differ on your version, run:
 # nix run nixpkgs#harmonia -- --help

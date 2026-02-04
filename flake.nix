@@ -13,7 +13,7 @@
       labSettings = {
         masterIp = "MASTER_IP";  # Replace with actual IP before building netboot
         cachePublicKey = "lab-cache-key:jJsA9nDLNlyzhBOj5rfSKcEL2IwNspxrbNCyqmvdUvI=";
-        cachePort = 8080;
+        cachePort = 5000;
       };
       mkHost = n:
         let name = "pc${padNumber n}";
