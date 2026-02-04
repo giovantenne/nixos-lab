@@ -30,7 +30,7 @@ in
   system.activationScripts.createHomeTemplate = {
     text = ''
       # Create base template
-      ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDir}" "${gitConfig.name}" "${gitConfig.email}"
+      ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDir}" "${gitConfig.name}" "${gitConfig.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update"
       
       # Install VS Code extensions
       ${pkgs.bash}/bin/bash ${installExtensionsScript} "${templateDir}/.vscode/extensions" "${pkgs.vscode}/bin/code" ${extensionsList}
