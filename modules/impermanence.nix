@@ -63,7 +63,12 @@ in
     directories = [
       "/etc/nixos"
       "/etc/ssh"
-      "/home/informatica/.config/Code"
+      {
+        directory = "/home/informatica";
+        user = "informatica";
+        group = "users";
+        mode = "0755";
+      }
     ];
   };
 }
