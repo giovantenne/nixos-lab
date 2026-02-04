@@ -9,7 +9,8 @@ ASSETS_DIR="$5"
 
 echo "Creating home template..."
 
-# Create template directory
+# Clean and recreate template directory
+rm -rf "$TEMPLATE_DIR"
 mkdir -p "$TEMPLATE_DIR"
 
 # Create .gitconfig
