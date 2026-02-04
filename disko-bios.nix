@@ -16,8 +16,20 @@
             content = {
               type = "btrfs";
               extraArgs = [ "-f" "-L" "nixos" ];
-              mountpoint = "/";
-              mountOptions = [ "compress=zstd" "noatime" ];
+              subvolumes = {
+                "@root" = {
+                  mountpoint = "/";
+                  mountOptions = [ "compress=zstd" "noatime" ];
+                };
+                "@home-informatica" = {
+                  mountpoint = "/home/informatica";
+                  mountOptions = [ "compress=zstd" "noatime" ];
+                };
+                "@snapshots" = {
+                  mountpoint = "/var/lib/home-snapshots";
+                  mountOptions = [ "compress=zstd" "noatime" ];
+                };
+              };
             };
           };
         };

@@ -59,9 +59,33 @@ Where `XX` is the PC number (e.g., `./setup.sh 5` for `pc05`).
 ## 4. Partitioning (Disko)
 Declarative configs are in `disko-bios.nix` and `disko-uefi.nix`. The script auto-detects boot mode.
 
-Target disk: `/dev/sda` with Btrfs label `nixos`.
+Target disk: `/dev/sda` with Btrfs label `nixos` and subvolumes:
+- `@root` -> `/`
+- `@home-informatica` -> `/home/informatica`
+- `@snapshots` -> `/var/lib/home-snapshots`
 
-## 5. Post-install management (Colmena)
+## 5. Home Reset and Snapshots
+The `informatica` home directory resets to a clean template on every boot:
+
+- **Template**: generated at build time with VS Code extensions and git config
+- **Snapshots**: last 5 versions saved in `/var/lib/home-snapshots/` (root only)
+
+To recover student work from a previous session:
+```sh
+sudo ls /var/lib/home-snapshots/snapshot-1/
+sudo cp /var/lib/home-snapshots/snapshot-1/file.txt /home/informatica/
+```
+
+To add VS Code extensions, edit `modules/home-reset.nix`:
+```nix
+vscodeExtensions = [
+  "vscjava.vscode-java-pack"
+  "ritwickdey.liveserver"
+  "ms-python.python"  # add new extensions here
+];
+```
+
+## 6. Post-install management (Colmena)
 The master (`pc31`) acts as the control node and pushes updates via SSH:
 
 ```sh

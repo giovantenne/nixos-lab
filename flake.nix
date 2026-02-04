@@ -30,6 +30,7 @@
               ./hosts/${name}/default.nix
               ./modules/cache.nix
               ./modules/filesystems.nix
+              ./modules/home-reset.nix
               home-manager.nixosModules.home-manager
             ];
           };
@@ -46,6 +47,7 @@
               ./hosts/${name}/default.nix
               ./modules/cache.nix
               ./modules/filesystems.nix
+              ./modules/home-reset.nix
               home-manager.nixosModules.home-manager
             ];
             deployment = {
