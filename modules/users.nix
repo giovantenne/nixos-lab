@@ -1,10 +1,14 @@
 { ... }:
 
 {
+  # Disable root login
+  users.users.root.hashedPassword = "!";
+
   users.users.admin = {
     isNormalUser = true;
     description = "admin";
     extraGroups = [ "networkmanager" "wheel" "docker" ];
+    hashedPassword = "$6$ARnkNr/aUtpwcxD4$kogxkOwkeqvwtsd0WXyQ3IhqXdLQgSXyjHV3Jb2GtPpHQWm/epABQvMTKmAu9MoVeLO5NTQCsjYwmadyumDas.";
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAeU4p5Nv6Ak8AJp4GiTlWHJUzuOEOuv5C2Am5mRnffV admin@pc31"
     ];
