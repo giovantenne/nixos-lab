@@ -9,5 +9,9 @@
   "workbench.welcomePage.enabled": false,
   "workbench.welcomePage.walkthroughs.openOnStartup": false,
   "workbench.welcomePage.walkthroughs.enabled": false,
-  "workbench.tips.enabled": false
+  "workbench.tips.enabled": false,
+  "chat.commandCenter.enabled": false,
+  "chat.editor.fontFamily": "JetBrainsMono Nerd Font Mono",
+  "workbench.panel.defaultLocation": "right",
+  "liveServer.settings.donotShowInfoMsg": true
 }

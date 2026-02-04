@@ -161,6 +161,9 @@
       UserKnownHostsFile /dev/null
   '';
 
+  # Exclude GNOME Console (we use Ghostty)
+  environment.gnome.excludePackages = [ pkgs.gnome-console ];
+
   environment.systemPackages = with pkgs; [
     wget
     curl
