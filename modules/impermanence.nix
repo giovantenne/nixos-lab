@@ -7,7 +7,7 @@ in
   boot.initrd.supportedFilesystems = [ "btrfs" ];
 
   # Mark /persist as neededForBoot for impermanence
-  fileSystems."/persist".neededForBoot = true;
+  fileSystems."/persist".neededForBoot = lib.mkForce true;
 
   boot.initrd.postDeviceCommands = lib.mkAfter ''
     mkdir -p /mnt
