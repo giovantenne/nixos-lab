@@ -33,10 +33,4 @@ cp "$ASSETS_DIR/vscode-settings.json" "$TEMPLATE_DIR/.config/Code/User/settings.
 # Copy mimeapps.list
 cp "$ASSETS_DIR/mimeapps.list" "$TEMPLATE_DIR/.config/mimeapps.list"
 
-# Copy starship config
-if [ -f "$ASSETS_DIR/starship.toml" ]; then
-  cp "$ASSETS_DIR/starship.toml" "$TEMPLATE_DIR/.config/starship.toml"
-fi
-
-
 echo "Home template created successfully"

@@ -49,11 +49,16 @@
 
     [org.gnome.shell]
     enabled-extensions=['ding@rastersoft.com', 'dash-to-dock@micxgx.gmail.com']
+    favorite-apps=['com.mitchellh.ghostty.desktop', 'chromium-browser.desktop', 'code.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Calculator.desktop', 'org.gnome.TextEditor.desktop']
+    welcome-dialog-last-shown-version='9999'
 
     [org.gnome.desktop.default-applications.terminal]
     exec='ghostty'
     exec-arg='--'
   '';
+
+  # Disable GNOME initial setup and welcome
+  services.gnome.gnome-initial-setup.enable = false;
 
   # Enable VirtualBox guest additions.
   virtualisation.virtualbox.guest.enable = true;

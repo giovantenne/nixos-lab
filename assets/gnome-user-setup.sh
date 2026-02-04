@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
+# Set GNOME favorites and dismiss welcome dialog for lab users
 set -euo pipefail
 
-if [ "${USER:-}" != "informatica" ]; then
-  exit 0
-fi
+# Only run for lab users
+case "${USER:-}" in
+  informatica|admin) ;;
+  *) exit 0 ;;
+esac
 
-gsettings set org.gnome.shell favorite-apps "['com.mitchellh.ghostty.desktop', 'chromium-browser.desktop', 'code.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Calculator.desktop', 'org.gnome.TextEditor.desktop']"
-gsettings set org.gnome.shell welcome-dialog-last-shown-version 9999
+# Wait for GNOME shell to be ready
+sleep 2
+
+gsettings set org.gnome.shell favorite-apps \
+  "['com.mitchellh.ghostty.desktop', 'chromium-browser.desktop', 'code.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Calculator.desktop', 'org.gnome.TextEditor.desktop']"
+
+gsettings set org.gnome.shell welcome-dialog-last-shown-version '99.0'
