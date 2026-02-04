@@ -38,14 +38,5 @@ if [ -f "$ASSETS_DIR/starship.toml" ]; then
   cp "$ASSETS_DIR/starship.toml" "$TEMPLATE_DIR/.config/starship.toml"
 fi
 
-# GNOME favorites autostart (informatica only)
-mkdir -p "$TEMPLATE_DIR/.config/autostart"
-if [ -f "$ASSETS_DIR/autostart/gnome-favorites.desktop" ]; then
-  cp "$ASSETS_DIR/autostart/gnome-favorites.desktop" "$TEMPLATE_DIR/.config/autostart/gnome-favorites.desktop"
-fi
-if [ -f "$ASSETS_DIR/set-gnome-favorites.sh" ]; then
-  cp "$ASSETS_DIR/set-gnome-favorites.sh" "$TEMPLATE_DIR/.config/autostart/set-gnome-favorites.sh"
-  chmod +x "$TEMPLATE_DIR/.config/autostart/set-gnome-favorites.sh"
-fi
 
 echo "Home template created successfully"

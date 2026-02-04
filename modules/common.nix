@@ -148,6 +148,8 @@
 
   environment.etc."xdg/starship.toml".source = ../assets/starship.toml;
 
+  environment.etc."lab/gnome-user-setup.sh".source = ../assets/gnome-user-setup.sh;
+
   programs.ssh.extraConfig = ''
     Host localhost 127.0.0.1 10.22.9.* pc*
       StrictHostKeyChecking no
@@ -191,6 +193,17 @@
     gnomeExtensions.desktop-icons-ng-ding
     gnomeExtensions.dash-to-dock
   ];
+
+  systemd.user.services.lab-gnome-setup = {
+    description = "Lab GNOME favorites and welcome setup";
+    wantedBy = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "/etc/lab/gnome-user-setup.sh";
+    };
+    path = [ pkgs.glib pkgs.gsettings-desktop-schemas ];
+  };
 
   services.openssh.enable = true;
 
