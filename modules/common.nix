@@ -153,7 +153,10 @@
 
   environment.etc."xdg/starship.toml".source = ../assets/starship.toml;
 
-  environment.etc."lab/gnome-user-setup.sh".source = ../assets/gnome-user-setup.sh;
+  environment.etc."lab/gnome-user-setup.sh" = {
+    source = ../assets/gnome-user-setup.sh;
+    mode = "0755";
+  };
 
   programs.ssh.extraConfig = ''
     Host localhost 127.0.0.1 10.22.9.* pc*
