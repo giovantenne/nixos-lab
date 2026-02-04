@@ -211,7 +211,7 @@
     after = [ "graphical-session.target" ];
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = "/etc/lab/gnome-user-setup.sh";
+      ExecStart = "${pkgs.bash}/bin/bash /etc/lab/gnome-user-setup.sh";
     };
     path = [ pkgs.glib pkgs.gsettings-desktop-schemas ];
   };
