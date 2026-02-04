@@ -148,6 +148,12 @@
 
   environment.etc."xdg/starship.toml".source = ../assets/starship.toml;
 
+  programs.ssh.extraConfig = ''
+    Host localhost 127.0.0.1 10.22.9.* pc*
+      StrictHostKeyChecking no
+      UserKnownHostsFile /dev/null
+  '';
+
   environment.systemPackages = with pkgs; [
     wget
     curl
