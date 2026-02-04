@@ -13,7 +13,7 @@ From the live USB:
 ```sh
 curl -LO https://raw.githubusercontent.com/giovantenne/nixos-lab/master/disko-config.nix
 sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko ./disko-config.nix
-sudo nixos-install --flake github:giovantenne/nixos-lab#pc31
+sudo nixos-install --flake github:giovantenne/nixos-lab#pc31 --no-write-lock-file
 reboot
 ```
 
