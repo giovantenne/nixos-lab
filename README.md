@@ -9,10 +9,15 @@ This repository manages a 31-PC NixOS lab, optimized for network installation (N
 ## 1. First setup at school (master PC)
 Bootstrap the master PC (`pc31`) from a USB installer, using temporary internet access on the first boot.
 
-From the live USB:
+From the live USB, detect boot mode and partition accordingly:
 ```sh
-curl -LO https://raw.githubusercontent.com/giovantenne/nixos-lab/master/disko-config.nix
-sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko ./disko-config.nix
+if [ -d /sys/firmware/efi ]; then
+  curl -LO https://raw.githubusercontent.com/giovantenne/nixos-lab/master/disko-uefi.nix
+  sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko ./disko-uefi.nix
+else
+  curl -LO https://raw.githubusercontent.com/giovantenne/nixos-lab/master/disko-bios.nix
+  sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko ./disko-bios.nix
+fi
 sudo nixos-install --flake github:giovantenne/nixos-lab#pc31 --no-write-lock-file
 reboot
 ```
@@ -52,8 +57,9 @@ cd /installer/repo
 Where `XX` is the PC number (e.g., `./setup.sh 5` for `pc05`).
 
 ## 4. Partitioning (Disko)
-Declarative config is in `disko-config.nix` with Btrfs subvolumes:
+Declarative configs are in `disko-bios.nix` and `disko-uefi.nix`. The script auto-detects boot mode.
 
+Btrfs subvolumes:
 ```text
 @root    -> /
 @nix     -> /nix

@@ -35,8 +35,6 @@
               ./hosts/${name}/default.nix
               ./modules/cache.nix
               ./modules/impermanence.nix
-              ./disko-config.nix
-              disko.nixosModules.disko
               impermanence.nixosModules.impermanence
               home-manager.nixosModules.home-manager
             ];
@@ -54,8 +52,6 @@
               ./hosts/${name}/default.nix
               ./modules/cache.nix
               ./modules/impermanence.nix
-              ./disko-config.nix
-              disko.nixosModules.disko
               impermanence.nixosModules.impermanence
               home-manager.nixosModules.home-manager
             ];

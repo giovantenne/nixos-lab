@@ -24,5 +24,14 @@ if [[ "$MASTER_IP" == "MASTER_IP" || -z "$MASTER_IP" ]]; then
   exit 1
 fi
 
-sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko ./disko-config.nix
+# Detect UEFI or BIOS
+if [ -d /sys/firmware/efi ]; then
+  echo "Detected UEFI boot"
+  DISKO_CONFIG="./disko-uefi.nix"
+else
+  echo "Detected BIOS boot"
+  DISKO_CONFIG="./disko-bios.nix"
+fi
+
+sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko "$DISKO_CONFIG"
 sudo nixos-install --flake .#"${PC_NAME}" --substituter "http://${MASTER_IP}:8080" --no-substitutes

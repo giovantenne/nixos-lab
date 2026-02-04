@@ -6,8 +6,25 @@ in
   boot.supportedFilesystems = [ "btrfs" ];
   boot.initrd.supportedFilesystems = [ "btrfs" ];
 
-  # Mark /persist as neededForBoot for impermanence
-  fileSystems."/persist".neededForBoot = lib.mkForce true;
+  # Define fileSystems manually (same for BIOS and UEFI, only /boot differs)
+  fileSystems."/" = {
+    device = btrfsDevice;
+    fsType = "btrfs";
+    options = [ "subvol=@root" "compress=zstd" "noatime" ];
+  };
+
+  fileSystems."/nix" = {
+    device = btrfsDevice;
+    fsType = "btrfs";
+    options = [ "subvol=@nix" "compress=zstd" "noatime" ];
+  };
+
+  fileSystems."/persist" = {
+    device = btrfsDevice;
+    fsType = "btrfs";
+    options = [ "subvol=@persist" "compress=zstd" "noatime" ];
+    neededForBoot = true;
+  };
 
   boot.initrd.postDeviceCommands = lib.mkAfter ''
     mkdir -p /mnt
