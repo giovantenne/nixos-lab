@@ -1,6 +1,9 @@
 { ... }:
 
 {
+  # Passwords are managed declaratively, cannot be changed manually
+  users.mutableUsers = false;
+
   # Disable root login
   users.users.root.hashedPassword = "!";
 
