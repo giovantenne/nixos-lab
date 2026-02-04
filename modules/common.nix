@@ -128,6 +128,8 @@
   programs.neovim.defaultEditor = true;
 
   # Shell tooling and prompt.
+  programs.starship.enable = true;
+  programs.starship.enableBashIntegration = true;
   programs.bash.shellAliases = {
     ls = "eza --group-directories-first";
     lsa = "eza -a --group-directories-first";
@@ -142,6 +144,8 @@
   programs.zoxide.enable = true;
   programs.zoxide.enableBashIntegration = true;
 
+  environment.etc."xdg/starship.toml".source = ../assets/starship.toml;
+
   environment.systemPackages = with pkgs; [
     wget
     curl
@@ -152,6 +156,7 @@
     fzf
     ghostty
     git
+    vscode
     chromium
     gcc
     htop

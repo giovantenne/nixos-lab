@@ -4,5 +4,8 @@
   "update.showReleaseNotes": false,
   "extensions.autoCheckUpdates": false,
   "extensions.autoUpdate": false,
-  "java.jdt.ls.java.home": "/run/current-system/sw/lib/openjdk"
+  "java.jdt.ls.java.home": "/run/current-system/sw/lib/openjdk",
+  "workbench.startupEditor": "none",
+  "workbench.welcomePage.walkthroughs.openOnStartup": false,
+  "workbench.tips.enabled": false
 }

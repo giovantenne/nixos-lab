@@ -13,7 +13,7 @@
   users.users.informatica = {
     isNormalUser = true;
     description = "informatica";
-    extraGroups = [ "networkmanager" ];
+    extraGroups = [ "networkmanager" "docker" ];
     hashedPassword = "$6$d7Y6egRmcsYHzkJE$sODDV60wD7qra8HAKgzAIOk2/EMMTqpb7LW2rbkvp/FNu9muJZeQT0FIbipUesftWrnGPlszKyKGmNtVdEbVs1";
   };
 
