@@ -19,10 +19,4 @@
 
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "informatica";
-
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
-  home-manager.backupFileExtension = "hm-bak";
-  home-manager.users.admin = import ./home-admin.nix;
-  # informatica home is managed by home-reset.nix (no symlinks)
 }

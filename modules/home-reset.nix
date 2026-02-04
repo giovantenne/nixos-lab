@@ -7,15 +7,22 @@ let
     "ritwickdey.liveserver"
   ];
 
-  # Git configuration for students
-  gitConfig = {
+  # Git configuration
+  gitConfigInformatica = {
     name = "studente";
     email = "studente@itismeucci.com";
   };
 
-  templateDir = "/var/lib/home-template/informatica";
+  gitConfigAdmin = {
+    name = "admin";
+    email = "admin@itismeucci.com";
+  };
+
+  templateDirInformatica = "/var/lib/home-template/informatica";
+  templateDirAdmin = "/var/lib/home-template/admin";
   snapshotsDir = "/var/lib/home-snapshots";
-  homeDir = "/home/informatica";
+  homeDirInformatica = "/home/informatica";
+  homeDirAdmin = "/home/admin";
 
   # External scripts
   createTemplateScript = ../assets/create-home-template.sh;
@@ -27,22 +34,30 @@ let
 
 in
 {
-  # Create template at system activation (rebuild time)
-  system.activationScripts.createHomeTemplate = {
+  # Create templates at system activation (rebuild time)
+  system.activationScripts.createHomeTemplates = {
     text = ''
-      # Create base template
-      ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDir}" "${gitConfig.name}" "${gitConfig.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}" "${pkgs.dconf}/bin/dconf"
-      
-      # Install VS Code extensions
-      ${pkgs.bash}/bin/bash ${installExtensionsScript} "${templateDir}/.vscode/extensions" "${pkgs.vscode}/bin/code" ${extensionsList}
-      
-      # Fix ownership
-      chown -R informatica:users "${templateDir}"
+      # Create informatica template
+      ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDirInformatica}" "${gitConfigInformatica.name}" "${gitConfigInformatica.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}" "${pkgs.dconf}/bin/dconf"
+      ${pkgs.bash}/bin/bash ${installExtensionsScript} "${templateDirInformatica}/.vscode/extensions" "${pkgs.vscode}/bin/code" ${extensionsList}
+      chown -R informatica:users "${templateDirInformatica}"
+
+      # Create admin template
+      ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDirAdmin}" "${gitConfigAdmin.name}" "${gitConfigAdmin.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}" "${pkgs.dconf}/bin/dconf"
+      ${pkgs.bash}/bin/bash ${installExtensionsScript} "${templateDirAdmin}/.vscode/extensions" "${pkgs.vscode}/bin/code" ${extensionsList}
+      chown -R admin:users "${templateDirAdmin}"
+
+      # Setup admin home (once, not reset at boot)
+      if [ ! -f "/home/admin/.home-initialized" ]; then
+        cp -a "${templateDirAdmin}/." "/home/admin/"
+        chown -R admin:users "/home/admin"
+        touch "/home/admin/.home-initialized"
+      fi
     '';
     deps = [ "users" ];
   };
 
-  # Systemd service to reset home at boot
+  # Systemd service to reset informatica home at boot
   systemd.services.home-reset = {
     description = "Reset informatica home directory from template";
     wantedBy = [ "multi-user.target" ];
@@ -51,12 +66,12 @@ in
     path = [ pkgs.btrfs-progs pkgs.findutils pkgs.coreutils ];
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = "${pkgs.bash}/bin/bash ${homeResetScript} ${snapshotsDir} ${homeDir} ${templateDir}";
+      ExecStart = "${pkgs.bash}/bin/bash ${homeResetScript} ${snapshotsDir} ${homeDirInformatica} ${templateDirInformatica}";
       RemainAfterExit = true;
     };
   };
 
-  # Ensure snapshots directory has correct permissions (only root can access)
+  # Ensure directories have correct permissions
   systemd.tmpfiles.rules = [
     "d /var/lib/home-snapshots 0700 root root -"
     "d /var/lib/home-template 0755 root root -"

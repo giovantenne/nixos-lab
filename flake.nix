@@ -3,13 +3,9 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
-    home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = { self, nixpkgs, home-manager }:
+  outputs = { self, nixpkgs }:
     let
       system = "x86_64-linux";
       pcNumbers = builtins.genList (n: n + 1) 31;
@@ -31,7 +27,6 @@
               ./modules/cache.nix
               ./modules/filesystems.nix
               ./modules/home-reset.nix
-              home-manager.nixosModules.home-manager
             ];
           };
         };
@@ -48,7 +43,6 @@
               ./modules/cache.nix
               ./modules/filesystems.nix
               ./modules/home-reset.nix
-              home-manager.nixosModules.home-manager
             ];
             deployment = {
               targetHost = address;
