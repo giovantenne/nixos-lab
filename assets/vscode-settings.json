@@ -11,12 +11,17 @@
   "workbench.welcomePage.walkthroughs.enabled": false,
   "workbench.tips.enabled": false,
   "chat.commandCenter.enabled": false,
-  "chat.editor.fontFamily": "JetBrainsMono Nerd Font Mono",
-  "workbench.panel.defaultLocation": "right",
-  "workbench.activityBar.visible": true,
-  "workbench.sideBar.location": "left",
   "chat.agent.enabled": false,
   "github.copilot.chat.agent.enabled": false,
-  "workbench.startupEditor": "none",
+  "workbench.activityBar.visible": true,
+  "workbench.sideBar.location": "left",
+  "workbench.panel.defaultLocation": "bottom",
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.profiles.linux": {
+    "bash": {
+      "path": "/run/current-system/sw/bin/bash",
+      "args": ["-l"]
+    }
+  },
   "liveServer.settings.donotShowInfoMsg": true
 }

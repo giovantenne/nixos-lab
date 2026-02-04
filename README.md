@@ -18,7 +18,7 @@ else
   curl -LO https://raw.githubusercontent.com/giovantenne/nixos-lab/master/disko-bios.nix
   sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko ./disko-bios.nix
 fi
-sudo nixos-install --flake github:giovantenne/nixos-lab#pc31 --no-write-lock-file
+sudo nixos-install --flake github:giovantenne/nixos-lab#pc31 --no-write-lock-file --no-root-passwd
 reboot
 ```
 
