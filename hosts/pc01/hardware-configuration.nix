@@ -11,10 +11,6 @@
   boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
 
-  fileSystems."/" =
-    { device = "/dev/disk/by-uuid/660c2542-31a6-4a0b-9093-ab11ac8db6c3";
-      fsType = "ext4";
-    };
 
   swapDevices = [ ];
 
