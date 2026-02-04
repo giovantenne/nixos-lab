@@ -91,3 +91,12 @@ The master (`pc31`) acts as the control node and pushes updates via SSH:
 ```sh
 colmena apply --on @lab
 ```
+
+## 7. Manual rebuild
+To manually rebuild a single PC from the latest GitHub config:
+
+```sh
+sudo nixos-rebuild switch --flake github:giovantenne/nixos-lab#pc31 --no-write-lock-file --refresh
+```
+
+Replace `pc31` with the appropriate hostname (e.g., `pc01`, `pc15`).
