@@ -33,18 +33,30 @@ Copy the private key (`secret-key`) for the local binary cache into the repo fol
 ## 2. Prepare the controller (pc31)
 First, update the master IP in `flake.nix` (`labSettings.masterIp`) with the actual IP assigned to `pc31`.
 
-Then build the netboot artifacts:
+After changing the IP, run a local rebuild on `pc31` to update Nix settings:
+
+```sh
+sudo nixos-rebuild switch --flake .#pc31 --no-write-lock-file --refresh
+```
+
+Then build the netboot artifacts (no sudo needed):
 
 ```sh
 nix build .#nixosConfigurations.netboot.config.system.build.netbootRamdisk
 ```
 
 ## 3. Network install (PXE/Netboot)
-Start the local services:
+Start the local services in two separate terminals:
 
 ```sh
-sudo nix run nixpkgs#pixiecore -- --bzImage ./result/bzImage --initrd ./result/initrd --dhcp-no-bind
-nix run nixpkgs#harmonia -- --address 0.0.0.0 --port 8080 --secret-key ./secret-key
+# Terminal 1: PXE server
+sudo nix run nixpkgs#pixiecore -- boot ./result/bzImage ./result/initrd --dhcp-no-bind
+
+# Terminal 2: Binary cache
+nix run nixpkgs#harmonia -- -b 0.0.0.0:8080 --secret-key-file ./secret-key
+
+# If harmonia flags differ on your version, run:
+# nix run nixpkgs#harmonia -- --help
 ```
 
 On the netboot RAMDisk, run:
