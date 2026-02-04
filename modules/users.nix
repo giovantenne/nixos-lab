@@ -6,7 +6,7 @@
     description = "admin";
     extraGroups = [ "networkmanager" "wheel" "docker" ];
     openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHZn4yG1+sFGHU8hMnvH5N+HHsGhDpXcgrHUDldvs9+a admin@pc01"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAeU4p5Nv6Ak8AJp4GiTlWHJUzuOEOuv5C2Am5mRnffV admin@pc31"
     ];
   };
 
