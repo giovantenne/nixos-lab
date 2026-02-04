@@ -3,7 +3,7 @@ This repository manages a 31-PC NixOS lab, optimized for network installation (N
 
 ## Architecture
 - Controller (`pc31`): `PXE/Netboot`, local `binary cache`, `Colmena` orchestration.
-- Nodes (Lab PCs): 30 workstations with `Btrfs` + `Impermanence` (root reset on every reboot).
+- Nodes (Lab PCs): 30 workstations with `Btrfs` filesystem.
 - Networking: installs and updates over `LAN` only, no internet on client PCs.
 
 ## 1. First setup at school (master PC)
@@ -59,25 +59,9 @@ Where `XX` is the PC number (e.g., `./setup.sh 5` for `pc05`).
 ## 4. Partitioning (Disko)
 Declarative configs are in `disko-bios.nix` and `disko-uefi.nix`. The script auto-detects boot mode.
 
-Btrfs subvolumes:
-```text
-@root    -> /
-@nix     -> /nix
-@persist -> /persist
-```
-
 Target disk: `/dev/sda` with Btrfs label `nixos`.
 
-## 5. Impermanence and persistence
-Root is rolled back on every boot (Btrfs rollback). Only these paths persist:
-
-```text
-/persist/etc/nixos
-/persist/etc/ssh
-/persist/home/informatica/.config/Code
-```
-
-## 6. Post-install management (Colmena)
+## 5. Post-install management (Colmena)
 The master (`pc31`) acts as the control node and pushes updates via SSH:
 
 ```sh

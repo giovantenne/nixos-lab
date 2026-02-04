@@ -7,14 +7,9 @@
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    impermanence.url = "github:nix-community/impermanence";
   };
 
-  outputs = { self, nixpkgs, home-manager, disko, impermanence }:
+  outputs = { self, nixpkgs, home-manager }:
     let
       system = "x86_64-linux";
       pcNumbers = builtins.genList (n: n + 1) 31;
@@ -34,8 +29,7 @@
             modules = [
               ./hosts/${name}/default.nix
               ./modules/cache.nix
-              ./modules/impermanence.nix
-              impermanence.nixosModules.impermanence
+              ./modules/filesystems.nix
               home-manager.nixosModules.home-manager
             ];
           };
@@ -51,8 +45,7 @@
             imports = [
               ./hosts/${name}/default.nix
               ./modules/cache.nix
-              ./modules/impermanence.nix
-              impermanence.nixosModules.impermanence
+              ./modules/filesystems.nix
               home-manager.nixosModules.home-manager
             ];
             deployment = {
