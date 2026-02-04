@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Set GNOME Favorites
+Exec=/bin/bash -lc "/home/informatica/.config/autostart/set-gnome-favorites.sh"
+X-GNOME-Autostart-enabled=true
+NoDisplay=true

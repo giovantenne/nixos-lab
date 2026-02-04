@@ -38,12 +38,12 @@ in
   system.activationScripts.createHomeTemplates = {
     text = ''
       # Create informatica template
-      ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDirInformatica}" "${gitConfigInformatica.name}" "${gitConfigInformatica.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}" "${pkgs.dconf}/bin/dconf"
+      ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDirInformatica}" "${gitConfigInformatica.name}" "${gitConfigInformatica.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}"
       ${pkgs.bash}/bin/bash ${installExtensionsScript} "${templateDirInformatica}/.vscode/extensions" "${pkgs.vscode}/bin/code" ${extensionsList}
       chown -R informatica:users "${templateDirInformatica}"
 
       # Create admin template
-      ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDirAdmin}" "${gitConfigAdmin.name}" "${gitConfigAdmin.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}" "${pkgs.dconf}/bin/dconf"
+      ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDirAdmin}" "${gitConfigAdmin.name}" "${gitConfigAdmin.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}"
       ${pkgs.bash}/bin/bash ${installExtensionsScript} "${templateDirAdmin}/.vscode/extensions" "${pkgs.vscode}/bin/code" ${extensionsList}
       chown -R admin:users "${templateDirAdmin}"
 

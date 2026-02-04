@@ -6,7 +6,6 @@ GIT_NAME="$2"
 GIT_EMAIL="$3"
 XDG_USER_DIRS_BIN="$4"
 ASSETS_DIR="$5"
-DCONF_BIN="$6"
 
 echo "Creating home template..."
 
@@ -34,14 +33,19 @@ cp "$ASSETS_DIR/vscode-settings.json" "$TEMPLATE_DIR/.config/Code/User/settings.
 # Copy mimeapps.list
 cp "$ASSETS_DIR/mimeapps.list" "$TEMPLATE_DIR/.config/mimeapps.list"
 
-# Load dconf settings
-if [ -f "$ASSETS_DIR/dconf-settings.ini" ]; then
-  "$DCONF_BIN" load / < "$ASSETS_DIR/dconf-settings.ini" || true
-fi
-
 # Copy starship config
 if [ -f "$ASSETS_DIR/starship.toml" ]; then
   cp "$ASSETS_DIR/starship.toml" "$TEMPLATE_DIR/.config/starship.toml"
+fi
+
+# GNOME favorites autostart (informatica only)
+mkdir -p "$TEMPLATE_DIR/.config/autostart"
+if [ -f "$ASSETS_DIR/autostart/gnome-favorites.desktop" ]; then
+  cp "$ASSETS_DIR/autostart/gnome-favorites.desktop" "$TEMPLATE_DIR/.config/autostart/gnome-favorites.desktop"
+fi
+if [ -f "$ASSETS_DIR/set-gnome-favorites.sh" ]; then
+  cp "$ASSETS_DIR/set-gnome-favorites.sh" "$TEMPLATE_DIR/.config/autostart/set-gnome-favorites.sh"
+  chmod +x "$TEMPLATE_DIR/.config/autostart/set-gnome-favorites.sh"
 fi
 
 echo "Home template created successfully"
