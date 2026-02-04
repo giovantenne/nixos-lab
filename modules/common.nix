@@ -134,6 +134,40 @@
 
   # Shell tooling and prompt.
   programs.starship.enable = true;
+  programs.starship.settings = {
+    add_newline = false;
+    command_timeout = 200;
+    format = "$directory$git_branch$git_status$character";
+    character = {
+      error_symbol = "[✗](bold cyan)";
+      success_symbol = "[❯](bold cyan)";
+    };
+    directory = {
+      truncation_length = 2;
+      truncation_symbol = "…/";
+      repo_root_style = "bold cyan";
+      repo_root_format = "[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) ";
+    };
+    git_branch = {
+      format = "[$branch]($style) ";
+      style = "italic cyan";
+    };
+    git_status = {
+      format = "[$all_status]($style)";
+      style = "cyan";
+      ahead = "⇡\${count} ";
+      diverged = "⇕⇡\${ahead_count}⇣\${behind_count} ";
+      behind = "⇣\${count} ";
+      conflicted = " ";
+      up_to_date = " ";
+      untracked = "? ";
+      modified = " ";
+      stashed = "";
+      staged = "";
+      renamed = "";
+      deleted = "";
+    };
+  };
   programs.bash.shellAliases = {
     ls = "eza --group-directories-first";
     lsa = "eza -a --group-directories-first";
@@ -144,12 +178,9 @@
   programs.bash.interactiveShellInit = ''
     source ${pkgs.fzf}/share/fzf/key-bindings.bash
     source ${pkgs.fzf}/share/fzf/completion.bash
-    export STARSHIP_CONFIG=/etc/xdg/starship.toml
   '';
   programs.zoxide.enable = true;
   programs.zoxide.enableBashIntegration = true;
-
-  environment.etc."xdg/starship.toml".source = ../assets/starship.toml;
 
   environment.etc."lab/gnome-user-setup.sh" = {
     source = ../assets/gnome-user-setup.sh;
