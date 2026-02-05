@@ -14,6 +14,7 @@ disko-uefi.nix             # Declarative disk partitioning (UEFI boot)
 setup.sh                   # Installer script for PXE-booted client PCs
 modules/
   common.nix               # Shared system config (GNOME, packages, shells, services)
+  hardware.nix             # Generic hardware detection (replaces per-host hardware-configuration.nix)
   users.nix                # User accounts (admin + informatica student)
   cache.nix                # Binary cache client (points to pc31's Harmonia)
   filesystems.nix          # Btrfs subvolume mount declarations
@@ -21,7 +22,6 @@ modules/
 hosts/
   pc01/ .. pc31/
     default.nix            # Host identity: hostname, static IP, imports
-    hardware-configuration.nix  # Auto-generated hardware config (placeholder for most)
 scripts/
   run-harmonia.sh          # Launches Harmonia binary cache server
 assets/
@@ -70,7 +70,8 @@ To validate changes, build the affected host configuration (`nix build`).
 - Custom settings flow from `flake.nix` via `specialArgs = { inherit labSettings; }` to modules that need them (currently `cache.nix`).
 - No custom NixOS options are declared (`options = { ... }`). This repo only sets existing nixpkgs options.
 - VS Code extensions are bundled into the package via `vscode-with-extensions` in `modules/common.nix`, built on pc31 and distributed via binary cache. Do not install extensions at activation time.
-- VirtualBox guest additions are enabled by default via `mkDefault` in `common.nix` (harmless on bare metal). Hardware-specific settings (video drivers, kernel modules) belong in each host's `hardware-configuration.nix`.
+- VirtualBox guest additions are enabled by default via `mkDefault` in `common.nix` (harmless on bare metal).
+- Hardware detection uses `modules/hardware.nix` with `not-detected.nix` for automatic driver loading. No per-host hardware-configuration.nix files are needed.
 - GRUB is configured to support both BIOS and UEFI. The ESP mount uses `nofail` so it is silently skipped on BIOS machines.
 
 ## Nix Code Style
@@ -144,7 +145,7 @@ Use only the arguments the module actually needs:
 | Host directories | Concatenated     | `pc01`, `pc02`, ..., `pc31`                 |
 
 ### Imports
-- Host files use relative paths: `./hardware-configuration.nix`, `../../modules/common.nix`
+- Host files use relative paths: `../../modules/hardware.nix`, `../../modules/common.nix`
 - Flake uses root-relative: `./hosts/${name}/default.nix`, `./modules/cache.nix`
 - Asset references from modules: `../assets/create-home-template.sh`
 
@@ -180,7 +181,7 @@ Every host `default.nix` follows this 22-line template (only hostname and IP var
 { ... }:
 {
   imports = [
-    ./hardware-configuration.nix
+    ../../modules/hardware.nix
     ../../modules/common.nix
     ../../modules/users.nix
   ];
