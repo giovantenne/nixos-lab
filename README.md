@@ -55,6 +55,11 @@ nix build .#nixosConfigurations.netboot.config.system.build.netbootRamdisk --out
 nix build .#nixosConfigurations.netboot.config.system.build.netbootIpxeScript --out-link result-ipxe
 ```
 
+Start the local binary cache (required for pre-builds):
+```sh
+nix run nixpkgs#harmonia -- --secret-key-file ./secret-key
+```
+
 Pre-build the PC system closures so installs work offline (fast, shared cache):
 ```sh
 nix build .#nixosConfigurations.pc{01..30}.config.system.build.toplevel
