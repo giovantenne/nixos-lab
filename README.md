@@ -7,17 +7,12 @@ This repository manages a 31-PC NixOS lab, optimized for network installation (N
 - Networking: installs and updates over `LAN` only, no internet on client PCs.
 
 ## 1. First setup at school (master PC)
-Bootstrap the master PC (`pc31`) from a USB installer, using temporary internet access on the first boot.
+Bootstrap the master PC (`pc31`) from a USB installer, using temporary internet access on the first boot. **UEFI boot is required** — enable it in BIOS settings if needed.
 
-From the live USB, detect boot mode and partition accordingly:
+From the live USB, partition and install:
 ```sh
-if [ -d /sys/firmware/efi ]; then
-  curl -LO https://raw.githubusercontent.com/giovantenne/nixos-lab/master/disko-uefi.nix
-  sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko ./disko-uefi.nix
-else
-  curl -LO https://raw.githubusercontent.com/giovantenne/nixos-lab/master/disko-bios.nix
-  sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko ./disko-bios.nix
-fi
+curl -LO https://raw.githubusercontent.com/giovantenne/nixos-lab/master/disko-uefi.nix
+sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko ./disko-uefi.nix
 sudo nixos-install --flake github:giovantenne/nixos-lab#pc31 --no-write-lock-file --no-root-passwd
 reboot
 ```
@@ -95,9 +90,9 @@ sudo ip addr add 10.22.9.31/24 dev "$iface"
 ```
 
 ## 4. Partitioning and Boot (Disko)
-Declarative configs are in `disko-bios.nix` and `disko-uefi.nix`. The `setup.sh` script auto-detects boot mode (UEFI or BIOS) and picks the right one.
+Declarative disk config is in `disko-uefi.nix`. All machines must boot in **UEFI mode**.
 
-GRUB is configured to support both BIOS and UEFI (`efiSupport` + `efiInstallAsRemovable`). On UEFI machines, disko creates an ESP partition mounted at `/boot`; on BIOS machines this mount is silently skipped (`nofail`).
+GRUB installs to the ESP as removable (`efiInstallAsRemovable`), which works on any UEFI machine without modifying NVRAM.
 
 Target disk: `/dev/sda` with Btrfs label `nixos` and subvolumes:
 - `@root` -> `/`

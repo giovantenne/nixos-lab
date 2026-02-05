@@ -28,17 +28,16 @@ fi
 # Detect UEFI or BIOS
 if [ -d /sys/firmware/efi ]; then
   echo "Detected UEFI boot"
-  DISKO_CONFIG="./disko-uefi.nix"
 else
-  echo "Detected BIOS boot"
-  DISKO_CONFIG="./disko-bios.nix"
+  echo "Error: BIOS boot not supported. Enable UEFI in BIOS settings." >&2
+  exit 1
 fi
 
 echo "Partitioning disk..."
-sudo disko --mode disko "$DISKO_CONFIG"
+sudo disko --mode disko ./disko-uefi.nix
 
 echo "Installing NixOS for ${PC_NAME}..."
-sudo nixos-install --flake .#"${PC_NAME}" \
+sudo nixos-install --flake ".#${PC_NAME}" \
   --option substituters "http://${MASTER_IP}:5000" \
   --option trusted-public-keys "${CACHE_KEY}" \
   --no-channel-copy \

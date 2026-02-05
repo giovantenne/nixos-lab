@@ -17,9 +17,11 @@ in
   # Enable flakes and nix-command
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  # Bootloader: GRUB on MBR for BIOS systems.
+  # Bootloader: GRUB for UEFI (installs to ESP as removable, no NVRAM needed)
   boot.loader.grub.enable = true;
-  boot.loader.grub.device = "/dev/sda";
+  boot.loader.grub.device = "nodev";
+  boot.loader.grub.efiSupport = true;
+  boot.loader.grub.efiInstallAsRemovable = true;
 
   # Enable networking
   networking.networkmanager.enable = true;

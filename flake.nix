@@ -32,7 +32,7 @@
             specialArgs = { inherit labSettings; };
             modules = [
               disko.nixosModules.disko
-              ./disko-bios.nix
+              ./disko-uefi.nix
               ./hosts/${name}/default.nix
               ./modules/cache.nix
               ./modules/filesystems.nix
