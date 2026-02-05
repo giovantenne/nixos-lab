@@ -21,7 +21,7 @@ if [ -f /etc/bashrc ]; then
 fi
 EOF
 
-# Create .profile for login shells
+# Create .profile for login shells (source bashrc)
 cat > "$TEMPLATE_DIR/.profile" << 'EOF'
 # Source bashrc
 if [ -f ~/.bashrc ]; then

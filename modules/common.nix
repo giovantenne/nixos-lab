@@ -214,7 +214,7 @@
   programs.zoxide.enableBashIntegration = true;
 
   environment.etc."lab/gnome-user-setup.sh" = {
-    source = ../assets/gnome-user-setup.sh;
+    source = ../scripts/gnome-user-setup.sh;
     mode = "0755";
   };
 

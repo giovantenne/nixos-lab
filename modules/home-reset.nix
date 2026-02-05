@@ -19,8 +19,8 @@ let
   homeDirAdmin = "/home/admin";
 
   # External scripts
-  createTemplateScript = ../assets/create-home-template.sh;
-  homeResetScript = ../assets/home-reset.sh;
+  createTemplateScript = ../scripts/create-home-template.sh;
+  homeResetScript = ../scripts/home-reset.sh;
   assetsDir = ../assets;
 
 in

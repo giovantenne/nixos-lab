@@ -9,7 +9,6 @@ Disko, and Colmena. The master controller (`pc31`, IP `10.22.9.31`) deploys to
 ```
 flake.nix                  # Entry point: generates pc01-pc31 configs + netboot + Colmena
 flake.lock                 # Pinned inputs (nixpkgs nixos-25.11, disko)
-disko-bios.nix             # Declarative disk partitioning (BIOS boot)
 disko-uefi.nix             # Declarative disk partitioning (UEFI boot)
 setup.sh                   # Installer script for PXE-booted client PCs
 modules/
@@ -24,10 +23,10 @@ hosts/
     default.nix            # Host identity: hostname, static IP, imports
 scripts/
   run-harmonia.sh          # Launches Harmonia binary cache server
-assets/
   create-home-template.sh  # Builds clean home directory template
   home-reset.sh            # Boot-time snapshot rotation + home reset
   gnome-user-setup.sh      # GNOME favorites and welcome setup
+assets/
   mimeapps.list            # Default browser = Chromium
 ```
 
@@ -144,7 +143,7 @@ Use only the arguments the module actually needs:
 ### Imports
 - Host files use relative paths: `../../modules/hardware.nix`, `../../modules/common.nix`
 - Flake uses root-relative: `./hosts/${name}/default.nix`, `./modules/cache.nix`
-- Asset references from modules: `../assets/create-home-template.sh`
+- Script references from modules: `../scripts/create-home-template.sh`
 
 ## Shell Script Style
 
