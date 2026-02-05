@@ -17,6 +17,8 @@ let
   snapshotsDir = "/var/lib/home-snapshots";
   homeDirInformatica = "/home/informatica";
   homeDirAdmin = "/home/admin";
+  liveServerExtension = pkgs.vscode-extensions.ritwickdey.liveserver;
+  liveServerExtensionDir = "${liveServerExtension}/share/vscode/extensions/ritwickdey.liveserver";
 
   # External scripts
   createTemplateScript = ../scripts/create-home-template.sh;
@@ -30,6 +32,8 @@ in
     text = ''
       # Create informatica template
       ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDirInformatica}" "${gitConfigInformatica.name}" "${gitConfigInformatica.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}"
+      mkdir -p "${templateDirInformatica}/.vscode/extensions"
+      cp -a "${liveServerExtensionDir}" "${templateDirInformatica}/.vscode/extensions/"
       chown -R informatica:users "${templateDirInformatica}"
 
       # Create admin template
