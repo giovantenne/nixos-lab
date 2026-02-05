@@ -46,4 +46,8 @@ mkdir -p "$TEMPLATE_DIR/.local/share"
 # Copy mimeapps.list
 cp "$ASSETS_DIR/mimeapps.list" "$TEMPLATE_DIR/.config/mimeapps.list"
 
+# Copy VS Code settings
+mkdir -p "$TEMPLATE_DIR/.config/Code/User"
+cp "$ASSETS_DIR/vscode-settings.json" "$TEMPLATE_DIR/.config/Code/User/settings.json"
+
 echo "Home template created successfully"
