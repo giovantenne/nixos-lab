@@ -48,11 +48,6 @@ Rebuild pc31 to apply the new settings:
 sudo nixos-rebuild switch --flake .#pc31 --no-write-lock-file
 ```
 
-Start the local binary cache (required for pre-builds):
-```sh
-./scripts/run-harmonia.sh
-```
-
 Build the netboot artifacts:
 ```sh
 nix build .#nixosConfigurations.netboot.config.system.build.kernel --out-link result-kernel
@@ -72,8 +67,12 @@ iface=$(ip -4 addr | awk '/10.22.9.31/{print $NF; exit}')
 sudo ip addr del 10.22.9.31/24 dev "$iface"
 ```
 
-Keep Harmonia running from the previous step, then start the PXE server:
+Start the local services in two separate terminals:
 ```sh
+# Terminal 1: Binary cache
+./scripts/run-harmonia.sh
+
+# Terminal 2: PXE server
 CMDLINE=$(grep '^kernel ' result-ipxe/netboot.ipxe | sed 's/^kernel [^ ]* //')
 sudo nix run nixpkgs#pixiecore -- boot result-kernel/bzImage result-initrd/initrd --cmdline "$CMDLINE"
 ```
