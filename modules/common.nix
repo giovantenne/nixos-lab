@@ -2,12 +2,17 @@
 
 let
   # VS Code with pre-installed extensions (built on pc31, cached in Nix store)
+  mavenExtension = pkgs.vscode-extensions.vscjava.vscode-maven.overrideAttrs (old: {
+    postInstall = (old.postInstall or "") + ''
+      chmod -R u+w "$out/share/vscode/extensions/vscjava.vscode-maven"
+    '';
+  });
   labVscode = pkgs.vscode-with-extensions.override {
     vscodeExtensions = with pkgs.vscode-extensions; [
       redhat.java
       vscjava.vscode-java-debug
       vscjava.vscode-java-test
-      vscjava.vscode-maven
+      mavenExtension
       vscjava.vscode-java-dependency
       ritwickdey.liveserver
     ];
