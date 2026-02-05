@@ -16,8 +16,9 @@ fi
 PC_ID=$(printf "%02d" "$PC_NUMBER")
 PC_NAME="pc${PC_ID}"
 
-# Extract masterIp from flake.nix
+# Extract settings from flake.nix
 MASTER_IP=$(grep 'masterIp' flake.nix | sed 's/.*"\(.*\)".*/\1/')
+CACHE_KEY=$(grep 'cachePublicKey' flake.nix | sed 's/.*"\(.*\)".*/\1/')
 
 if [[ "$MASTER_IP" == "MASTER_IP" || -z "$MASTER_IP" ]]; then
   echo "Error: masterIp not configured in flake.nix" >&2
@@ -33,5 +34,12 @@ else
   DISKO_CONFIG="./disko-bios.nix"
 fi
 
-sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko "$DISKO_CONFIG"
-sudo nixos-install --flake .#"${PC_NAME}" --substituter "http://${MASTER_IP}:5000" --no-root-passwd
+echo "Partitioning disk..."
+sudo disko --mode disko "$DISKO_CONFIG"
+
+echo "Installing NixOS for ${PC_NAME}..."
+sudo nixos-install --flake .#"${PC_NAME}" \
+  --option substituters "http://${MASTER_IP}:5000" \
+  --option trusted-public-keys "${CACHE_KEY}" \
+  --no-channel-copy \
+  --no-root-passwd

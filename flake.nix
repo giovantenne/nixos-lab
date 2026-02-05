@@ -3,9 +3,13 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, disko }:
     let
       system = "x86_64-linux";
       pcNumbers = builtins.genList (n: n + 1) 31;
@@ -64,6 +68,7 @@
             ({ pkgs, lib, ... }: {
               networking.useDHCP = lib.mkForce true;
               services.openssh.enable = true;
+              environment.systemPackages = [ disko.packages.${system}.default ];
               system.stateVersion = "25.11";
               system.activationScripts.copyFlakeToRamdisk.text = ''
                 install -d -m 0755 /installer/repo
