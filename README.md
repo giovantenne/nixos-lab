@@ -37,11 +37,6 @@ chmod 600 ~/.ssh/id_ed25519
 ```
 
 ## 2. Prepare the controller (pc31)
-Remove the static IP so pixiecore will only use the DHCP address during setup:
-```sh
-sudo ip addr del 10.22.9.31/24 dev enp0s3
-```
-
 Update `masterIp` at the top of `flake.nix` with the DHCP-assigned IP of `pc31`:
 ```sh
 ip -4 addr                  # find the DHCP address
@@ -61,6 +56,11 @@ nix build .#nixosConfigurations.netboot.config.system.build.netbootIpxeScript --
 ```
 
 ## 3. Network install (PXE/Netboot)
+Remove the static IP so pixiecore uses only the DHCP address:
+```sh
+sudo ip addr del 10.22.9.31/24 dev enp0s3
+```
+
 Start the local services in two separate terminals:
 ```sh
 # Terminal 1: Binary cache
