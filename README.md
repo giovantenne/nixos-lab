@@ -37,10 +37,12 @@ chmod 600 ~/.ssh/id_ed25519
 ```
 
 ## 2. Prepare the controller (pc31)
+All commands below run from `~/nixos-config` on `pc31`.
+
 Update `masterIp` at the top of `flake.nix` with the DHCP-assigned IP of `pc31`:
 ```sh
 ip -4 addr                  # find the DHCP address
-vim flake.nix               # edit masterIp on line 14
+vim flake.nix               # edit masterIp on line 15
 ```
 
 Rebuild pc31 to apply the new settings:
@@ -55,7 +57,7 @@ nix build .#nixosConfigurations.netboot.config.system.build.netbootRamdisk --out
 nix build .#nixosConfigurations.netboot.config.system.build.netbootIpxeScript --out-link result-ipxe
 ```
 
-Pre-build the PC system closures so installs work offline (fast, shared cache):
+Pre-build all client closures so installs work offline via the local cache:
 ```sh
 nix build .#nixosConfigurations.pc{01..30}.config.system.build.toplevel
 ```
@@ -79,21 +81,23 @@ sudo nix run nixpkgs#pixiecore -- boot result-kernel/bzImage result-initrd/initr
 
 On each client PC, enable PXE/Network boot in BIOS. The PC will boot into a NixOS ramdisk.
 
-On the netboot ramdisk, run:
+On the booted client, run the installer:
 ```sh
 cd /installer/repo
 ./setup.sh XX
 ```
 Where `XX` is the PC number (e.g., `./setup.sh 5` for `pc05`).
 
-When done, restore the static IP (or just reboot pc31):
+When all clients are installed, restore the static IP on pc31 (or just reboot it):
 ```sh
 iface=$(ip -4 addr | awk '/10.22.9.31/{print $NF; exit}')
 sudo ip addr add 10.22.9.31/24 dev "$iface"
 ```
 
-## 4. Partitioning (Disko)
-Declarative configs are in `disko-bios.nix` and `disko-uefi.nix`. The `setup.sh` script auto-detects boot mode.
+## 4. Partitioning and Boot (Disko)
+Declarative configs are in `disko-bios.nix` and `disko-uefi.nix`. The `setup.sh` script auto-detects boot mode (UEFI or BIOS) and picks the right one.
+
+GRUB is configured to support both BIOS and UEFI (`efiSupport` + `efiInstallAsRemovable`). On UEFI machines, disko creates an ESP partition mounted at `/boot`; on BIOS machines this mount is silently skipped (`nofail`).
 
 Target disk: `/dev/sda` with Btrfs label `nixos` and subvolumes:
 - `@root` -> `/`
@@ -103,7 +107,7 @@ Target disk: `/dev/sda` with Btrfs label `nixos` and subvolumes:
 ## 5. Home Reset and Snapshots
 The `informatica` home directory resets to a clean template on every boot:
 
-- **Template**: generated at build time with VS Code extensions and git config
+- **Template**: generated at activation time with git config, VS Code settings, and XDG directories
 - **Snapshots**: last 5 versions saved in `/var/lib/home-snapshots/` (root only)
 
 To recover student work from a previous session:
@@ -112,23 +116,38 @@ sudo ls /var/lib/home-snapshots/snapshot-1/
 sudo cp /var/lib/home-snapshots/snapshot-1/file.txt /home/informatica/
 ```
 
-To add VS Code extensions, edit `modules/home-reset.nix`:
+## 6. VS Code Extensions
+Extensions are bundled directly into the VS Code package at build time (no internet needed on clients). To add or remove extensions, edit the `labVscode` definition in `modules/common.nix`:
 ```nix
-vscodeExtensions = [
-  "vscjava.vscode-java-pack"
-  "ritwickdey.liveserver"
-  "ms-python.python"  # add new extensions here
-];
+labVscode = pkgs.vscode-with-extensions.override {
+  vscodeExtensions = with pkgs.vscode-extensions; [
+    redhat.java
+    vscjava.vscode-java-debug
+    vscjava.vscode-java-test
+    vscjava.vscode-maven
+    vscjava.vscode-java-dependency
+    ritwickdey.liveserver
+    # add new extensions here
+  ];
+};
 ```
+Available extensions are listed in [nixpkgs vscode-extensions](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/editors/vscode/extensions).
 
-## 6. Post-install management (Colmena)
-The master (`pc31`) acts as the control node and pushes updates via SSH:
+## 7. Post-install management (Colmena)
+The master (`pc31`) pushes updates to all lab PCs via SSH:
 
 ```sh
+# Start the binary cache (required for client builds)
+./scripts/run-harmonia.sh
+
+# Deploy to all lab PCs
 colmena apply --on @lab
+
+# Deploy to a single PC
+colmena apply --on pc05
 ```
 
-## 7. Manual rebuild
+## 8. Manual rebuild
 To manually rebuild a single PC from the latest GitHub config:
 ```sh
 sudo nixos-rebuild switch --flake github:giovantenne/nixos-lab#pc31 --no-write-lock-file --refresh

@@ -1,13 +1,28 @@
-{ config, pkgs, lib, ... }:
+{ pkgs, lib, ... }:
 
+let
+  # VS Code with pre-installed extensions (built on pc31, cached in Nix store)
+  labVscode = pkgs.vscode-with-extensions.override {
+    vscodeExtensions = with pkgs.vscode-extensions; [
+      redhat.java
+      vscjava.vscode-java-debug
+      vscjava.vscode-java-test
+      vscjava.vscode-maven
+      vscjava.vscode-java-dependency
+      ritwickdey.liveserver
+    ];
+  };
+in
 {
   # Enable flakes and nix-command
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  # Bootloader.
+  # Bootloader (works on both BIOS and UEFI machines).
   boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/sda";
   boot.loader.grub.useOSProber = true;
+  boot.loader.grub.efiSupport = true;
+  boot.loader.grub.efiInstallAsRemovable = true;
 
   # Enable networking
   networking.networkmanager.enable = true;
@@ -56,6 +71,13 @@
     favorite-apps=['com.mitchellh.ghostty.desktop', 'chromium-browser.desktop', 'code.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Calculator.desktop', 'org.gnome.TextEditor.desktop']
     welcome-dialog-last-shown-version='9999'
 
+    [org.gnome.settings-daemon.plugins.power]
+    sleep-inactive-ac-type='nothing'
+    sleep-inactive-battery-type='nothing'
+    sleep-inactive-ac-timeout=0
+    sleep-inactive-battery-timeout=0
+    idle-dim=false
+
     [org.gnome.desktop.default-applications.terminal]
     exec='ghostty'
     exec-arg='--'
@@ -72,9 +94,17 @@
   # Disable GNOME initial setup and welcome
   services.gnome.gnome-initial-setup.enable = false;
 
-  # Enable VirtualBox guest additions.
-  virtualisation.virtualbox.guest.enable = true;
-  services.xserver.videoDrivers = [ "virtualbox" ];
+  # Disable system sleep/idle actions
+  services.logind = {
+    lidSwitch = "ignore";
+    lidSwitchExternalPower = "ignore";
+    lidSwitchDocked = "ignore";
+    idleAction = "ignore";
+  };
+
+  # VirtualBox guest additions (harmless on bare metal: the kernel module
+  # simply fails to load and the service does not start).
+  virtualisation.virtualbox.guest.enable = lib.mkDefault true;
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -212,7 +242,7 @@
   # Exclude GNOME Console (we use Ghostty)
   environment.gnome.excludePackages = [ pkgs.gnome-console ];
 
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages = [ labVscode ] ++ (with pkgs; [
     wget
     curl
     bat
@@ -223,7 +253,6 @@
     starship
     ghostty
     git
-    vscode
     chromium
     gcc
     htop
@@ -248,7 +277,7 @@
     xdg-user-dirs
     gnomeExtensions.desktop-icons-ng-ding
     gnomeExtensions.dash-to-dock
-  ];
+  ]);
 
   systemd.user.services.lab-gnome-setup = {
     description = "Lab GNOME favorites and welcome setup";

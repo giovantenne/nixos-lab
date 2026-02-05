@@ -1,12 +1,6 @@
-{ config, pkgs, lib, ... }:
+{ pkgs, ... }:
 
 let
-  # VS Code extensions to install in template
-  vscodeExtensions = [
-    "vscjava.vscode-java-pack"
-    "ritwickdey.liveserver"
-  ];
-
   # Git configuration
   gitConfigInformatica = {
     name = "studente";
@@ -27,10 +21,7 @@ let
   # External scripts
   createTemplateScript = ../assets/create-home-template.sh;
   homeResetScript = ../assets/home-reset.sh;
-  installExtensionsScript = ../assets/install-vscode-extensions.sh;
   assetsDir = ../assets;
-
-  extensionsList = lib.concatStringsSep " " vscodeExtensions;
 
 in
 {
@@ -39,12 +30,10 @@ in
     text = ''
       # Create informatica template
       ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDirInformatica}" "${gitConfigInformatica.name}" "${gitConfigInformatica.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}"
-      ${pkgs.bash}/bin/bash ${installExtensionsScript} "${templateDirInformatica}" "${pkgs.vscode}/bin/code" ${extensionsList}
       chown -R informatica:users "${templateDirInformatica}"
 
       # Create admin template
       ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDirAdmin}" "${gitConfigAdmin.name}" "${gitConfigAdmin.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}"
-      ${pkgs.bash}/bin/bash ${installExtensionsScript} "${templateDirAdmin}" "${pkgs.vscode}/bin/code" ${extensionsList}
       chown -R admin:users "${templateDirAdmin}"
 
       # Setup admin home (once, not reset at boot)
