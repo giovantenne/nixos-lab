@@ -28,8 +28,6 @@ assets/
   create-home-template.sh  # Builds clean home directory template
   home-reset.sh            # Boot-time snapshot rotation + home reset
   gnome-user-setup.sh      # GNOME favorites and welcome setup
-  vscode-settings.json     # VS Code user settings for template
-  vscode-storage.json      # VS Code UI state (dark theme)
   mimeapps.list            # Default browser = Chromium
 ```
 
@@ -69,7 +67,6 @@ To validate changes, build the affected host configuration (`nix build`).
 - Host `default.nix` files handle identity only (hostname, IP, hardware import). Infrastructure modules (cache, filesystems, home-reset) are composed at the flake level.
 - Custom settings flow from `flake.nix` via `specialArgs = { inherit labSettings; }` to modules that need them (currently `cache.nix`).
 - No custom NixOS options are declared (`options = { ... }`). This repo only sets existing nixpkgs options.
-- VS Code extensions are bundled into the package via `vscode-with-extensions` in `modules/common.nix`, built on pc31 and distributed via binary cache. Do not install extensions at activation time.
 - VirtualBox guest additions are enabled by default via `mkDefault` in `common.nix` (harmless on bare metal).
 - Hardware detection uses `modules/hardware.nix` with `not-detected.nix` for automatic driver loading. No per-host hardware-configuration.nix files are needed.
 - GRUB is configured to support both BIOS and UEFI. The ESP mount uses `nofail` so it is silently skipped on BIOS machines.

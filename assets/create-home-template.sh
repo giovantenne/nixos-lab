@@ -41,14 +41,7 @@ HOME="$TEMPLATE_DIR" "$XDG_USER_DIRS_BIN" --force
 
 # Create config directories
 mkdir -p "$TEMPLATE_DIR/.config"
-mkdir -p "$TEMPLATE_DIR/.config/Code/User/globalStorage"
 mkdir -p "$TEMPLATE_DIR/.local/share"
-
-# Copy VS Code settings
-cp "$ASSETS_DIR/vscode-settings.json" "$TEMPLATE_DIR/.config/Code/User/settings.json"
-
-# Copy VS Code storage (UI state - hide chat sidebar)
-cp "$ASSETS_DIR/vscode-storage.json" "$TEMPLATE_DIR/.config/Code/User/globalStorage/storage.json"
 
 # Copy mimeapps.list
 cp "$ASSETS_DIR/mimeapps.list" "$TEMPLATE_DIR/.config/mimeapps.list"

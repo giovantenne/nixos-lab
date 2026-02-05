@@ -111,24 +111,7 @@ sudo ls /var/lib/home-snapshots/snapshot-1/
 sudo cp /var/lib/home-snapshots/snapshot-1/file.txt /home/informatica/
 ```
 
-## 6. VS Code Extensions
-Extensions are bundled directly into the VS Code package at build time (no internet needed on clients). To add or remove extensions, edit the `labVscode` definition in `modules/common.nix`:
-```nix
-labVscode = pkgs.vscode-with-extensions.override {
-  vscodeExtensions = with pkgs.vscode-extensions; [
-    redhat.java
-    vscjava.vscode-java-debug
-    vscjava.vscode-java-test
-    vscjava.vscode-maven
-    vscjava.vscode-java-dependency
-    ritwickdey.liveserver
-    # add new extensions here
-  ];
-};
-```
-Available extensions are listed in [nixpkgs vscode-extensions](https://github.com/NixOS/nixpkgs/tree/master/pkgs/applications/editors/vscode/extensions).
-
-## 7. Post-install management (Colmena)
+## 6. Post-install management (Colmena)
 The master (`pc31`) pushes updates to all lab PCs via SSH:
 
 ```sh
@@ -142,7 +125,7 @@ colmena apply --on @lab
 colmena apply --on pc05
 ```
 
-## 8. Manual rebuild
+## 7. Manual rebuild
 To manually rebuild a single PC from the latest GitHub config:
 ```sh
 sudo nixos-rebuild switch --flake github:giovantenne/nixos-lab#pc31 --no-write-lock-file --refresh
