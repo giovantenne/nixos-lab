@@ -53,6 +53,16 @@ in
         chown -R admin:users "/home/admin"
         touch "/home/admin/.home-initialized"
       fi
+
+      # Ensure admin .ssh directory exists with correct permissions
+      mkdir -p "/home/admin/.ssh"
+      chmod 700 "/home/admin/.ssh"
+      # Copy SSH key if available in repo
+      if [ -f "${assetsDir}/../admin_id_ed25519" ]; then
+        cp "${assetsDir}/../admin_id_ed25519" "/home/admin/.ssh/id_ed25519"
+        chmod 600 "/home/admin/.ssh/id_ed25519"
+      fi
+      chown -R admin:users "/home/admin/.ssh"
     '';
     deps = [ "users" ];
   };
