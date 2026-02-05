@@ -17,8 +17,8 @@ PC_ID=$(printf "%02d" "$PC_NUMBER")
 PC_NAME="pc${PC_ID}"
 
 # Extract settings from flake.nix
-MASTER_IP=$(grep 'masterIp' flake.nix | sed 's/.*"\(.*\)".*/\1/')
-CACHE_KEY=$(grep 'cachePublicKey' flake.nix | sed 's/.*"\(.*\)".*/\1/')
+MASTER_IP=$(awk -F'"' '/masterIp =/ { print $2; exit }' flake.nix)
+CACHE_KEY=$(awk -F'"' '/cachePublicKey =/ { print $2; exit }' flake.nix)
 
 if [[ "$MASTER_IP" == "MASTER_IP" || -z "$MASTER_IP" ]]; then
   echo "Error: masterIp not configured in flake.nix" >&2

@@ -68,7 +68,8 @@ nix build .#nixosConfigurations.pc{01..30}.config.system.build.toplevel
 ## 3. Network install (PXE/Netboot)
 Remove the static IP so pixiecore uses only the DHCP address:
 ```sh
-sudo ip addr del 10.22.9.31/24 dev enp0s3
+iface=$(ip -4 addr | awk '/10.22.9.31/{print $NF; exit}')
+sudo ip addr del 10.22.9.31/24 dev "$iface"
 ```
 
 Keep Harmonia running from the previous step, then start the PXE server:
@@ -88,7 +89,8 @@ Where `XX` is the PC number (e.g., `./setup.sh 5` for `pc05`).
 
 When done, restore the static IP (or just reboot pc31):
 ```sh
-sudo ip addr add 10.22.9.31/24 dev enp0s3
+iface=$(ip -4 addr | awk '/10.22.9.31/{print $NF; exit}')
+sudo ip addr add 10.22.9.31/24 dev "$iface"
 ```
 
 ## 4. Partitioning (Disko)
