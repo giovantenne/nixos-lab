@@ -48,4 +48,8 @@ chown -R informatica:users "$HOME_DIR"
 chmod -R u+rwX,go+rX "$HOME_DIR"
 chmod 755 "$HOME_DIR"
 
+# Ensure default ACLs so newly created folders stay writable
+setfacl -R -m u:informatica:rwx "$HOME_DIR"
+setfacl -R -m d:u:informatica:rwx "$HOME_DIR"
+
 echo "Home reset completed"
