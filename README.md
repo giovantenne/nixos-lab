@@ -71,12 +71,8 @@ Remove the static IP so pixiecore uses only the DHCP address:
 sudo ip addr del 10.22.9.31/24 dev enp0s3
 ```
 
-Start the local services in two separate terminals:
+Keep Harmonia running from the previous step, then start the PXE server:
 ```sh
-# Terminal 1: Binary cache
-nix run nixpkgs#harmonia -- --secret-key-file ./secret-key
-
-# Terminal 2: PXE server
 CMDLINE=$(grep '^kernel ' result-ipxe/netboot.ipxe | sed 's/^kernel [^ ]* //')
 sudo nix run nixpkgs#pixiecore -- boot result-kernel/bzImage result-initrd/initrd --cmdline "$CMDLINE"
 ```
