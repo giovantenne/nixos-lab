@@ -42,10 +42,10 @@ Remove the static IP so pixiecore will only use the DHCP address during setup:
 sudo ip addr del 10.22.9.31/24 dev enp0s3
 ```
 
-Update `masterIp` in `flake.nix` with the DHCP-assigned IP of `pc31`:
+Update `masterIp` at the top of `flake.nix` with the DHCP-assigned IP of `pc31`:
 ```sh
-ip -4 addr show enp0s3     # find the DHCP address
-vim flake.nix               # edit labSettings.masterIp
+ip -4 addr                  # find the DHCP address
+vim flake.nix               # edit masterIp on line 14
 ```
 
 Rebuild pc31 to apply the new settings:

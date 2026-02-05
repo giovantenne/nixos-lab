@@ -11,11 +11,15 @@
 
   outputs = { self, nixpkgs, disko }:
     let
+      # ====== EDIT THIS: set to the DHCP IP of pc31 ======
+      masterIp = "MASTER_IP";
+      # ===================================================
+
       system = "x86_64-linux";
       pcNumbers = builtins.genList (n: n + 1) 31;
       padNumber = n: if n < 10 then "0${toString n}" else toString n;
       labSettings = {
-        masterIp = "MASTER_IP";  # Replace with actual IP before building netboot
+        inherit masterIp;
         cachePublicKey = "lab-cache-key:jJsA9nDLNlyzhBOj5rfSKcEL2IwNspxrbNCyqmvdUvI=";
         cachePort = 5000;
       };
