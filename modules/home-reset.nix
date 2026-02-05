@@ -19,6 +19,8 @@ let
   homeDirAdmin = "/home/admin";
   liveServerExtension = pkgs.vscode-extensions.ritwickdey.liveserver;
   liveServerExtensionDir = "${liveServerExtension}/share/vscode/extensions/ritwickdey.liveserver";
+  javaExtensionPack = pkgs.vscode-extensions.vscjava.vscode-java-pack;
+  javaExtensionPackDir = "${javaExtensionPack}/share/vscode/extensions/vscjava.vscode-java-pack";
 
   # External scripts
   createTemplateScript = ../scripts/create-home-template.sh;
@@ -34,6 +36,7 @@ in
       ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDirInformatica}" "${gitConfigInformatica.name}" "${gitConfigInformatica.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}"
       mkdir -p "${templateDirInformatica}/.vscode/extensions"
       cp -a "${liveServerExtensionDir}" "${templateDirInformatica}/.vscode/extensions/"
+      cp -a "${javaExtensionPackDir}" "${templateDirInformatica}/.vscode/extensions/"
       chown -R informatica:users "${templateDirInformatica}"
 
       # Create admin template
