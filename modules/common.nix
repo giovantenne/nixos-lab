@@ -264,6 +264,7 @@ in
     ghostscript
     tectonic
     mermaid-cli
+    jq
     lazygit
     unzip
     python3
