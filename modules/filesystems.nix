@@ -13,14 +13,6 @@ in
     options = [ "subvol=@root" ] ++ btrfsOptions;
   };
 
-  # ESP partition (UEFI only). On BIOS machines the partition does not
-  # exist and nofail ensures the boot continues without errors.
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-partlabel/ESP";
-    fsType = "vfat";
-    options = [ "umask=0077" "nofail" ];
-  };
-
   fileSystems."/home/informatica" = {
     device = btrfsDevice;
     fsType = "btrfs";

@@ -17,12 +17,9 @@ in
   # Enable flakes and nix-command
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  # Bootloader (works on both BIOS and UEFI machines).
+  # Bootloader: GRUB on MBR for BIOS systems.
   boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/sda";
-  boot.loader.grub.useOSProber = true;
-  boot.loader.grub.efiSupport = true;
-  boot.loader.grub.efiInstallAsRemovable = true;
 
   # Enable networking
   networking.networkmanager.enable = true;
