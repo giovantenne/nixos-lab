@@ -55,6 +55,11 @@ nix build .#nixosConfigurations.netboot.config.system.build.netbootRamdisk --out
 nix build .#nixosConfigurations.netboot.config.system.build.netbootIpxeScript --out-link result-ipxe
 ```
 
+Pre-build the PC system closures so installs work offline (fast, shared cache):
+```sh
+nix build .#nixosConfigurations.pc{01..30}.config.system.build.toplevel
+```
+
 ## 3. Network install (PXE/Netboot)
 Remove the static IP so pixiecore uses only the DHCP address:
 ```sh
