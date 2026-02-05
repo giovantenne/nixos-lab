@@ -48,16 +48,16 @@ Rebuild pc31 to apply the new settings:
 sudo nixos-rebuild switch --flake .#pc31 --no-write-lock-file
 ```
 
+Start the local binary cache (required for pre-builds):
+```sh
+./scripts/run-harmonia.sh
+```
+
 Build the netboot artifacts:
 ```sh
 nix build .#nixosConfigurations.netboot.config.system.build.kernel --out-link result-kernel
 nix build .#nixosConfigurations.netboot.config.system.build.netbootRamdisk --out-link result-initrd
 nix build .#nixosConfigurations.netboot.config.system.build.netbootIpxeScript --out-link result-ipxe
-```
-
-Start the local binary cache (required for pre-builds):
-```sh
-./scripts/run-harmonia.sh
 ```
 
 Pre-build the PC system closures so installs work offline (fast, shared cache):
