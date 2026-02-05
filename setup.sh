@@ -34,4 +34,4 @@ else
 fi
 
 sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko "$DISKO_CONFIG"
-sudo nixos-install --flake .#"${PC_NAME}" --substituter "http://${MASTER_IP}:8080" --no-substitutes
+sudo nixos-install --flake .#"${PC_NAME}" --substituter "http://${MASTER_IP}:5000" --no-root-passwd

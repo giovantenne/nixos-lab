@@ -22,67 +22,77 @@ sudo nixos-install --flake github:giovantenne/nixos-lab#pc31 --no-write-lock-fil
 reboot
 ```
 
-After the first reboot, log in and clone the repo:
+After the first reboot, log in as `admin` and clone the repo:
 ```sh
 git clone https://github.com/giovantenne/nixos-lab.git ~/nixos-config
 cd ~/nixos-config
 ```
 
-Copy the private key (`secret-key`) for the local binary cache into the repo folder (`~/nixos-config/secret-key`). It is already in `.gitignore`.
+Copy the binary cache private key (`secret-key`) into the repo folder. It is already in `.gitignore`.
 
-## 2. Prepare the controller (pc31)
-First, update the master IP in `flake.nix` (`labSettings.masterIp`) with the actual IP assigned to `pc31`.
-
-After changing the IP, run a local rebuild on `pc31` to update Nix settings:
-
+Copy the admin SSH private key (`admin_id_ed25519`) to `~/.ssh/id_ed25519`:
 ```sh
-sudo nixos-rebuild switch --flake .#pc31 --no-write-lock-file --refresh
+cp admin_id_ed25519 ~/.ssh/id_ed25519
+chmod 600 ~/.ssh/id_ed25519
 ```
 
-Then build the netboot artifacts (no sudo needed):
-
+## 2. Prepare the controller (pc31)
+Update `masterIp` in `flake.nix` with the DHCP-assigned IP of `pc31`:
 ```sh
-nix build .#nixosConfigurations.netboot.config.system.build.kernel \
-          .#nixosConfigurations.netboot.config.system.build.netbootRamdisk \
-          .#nixosConfigurations.netboot.config.system.build.netbootIpxeScript \
-          --out-link result-kernel \
-          --out-link result-initrd \
-          --out-link result-ipxe
+ip -4 addr show enp0s3     # find the DHCP address
+vim flake.nix               # edit labSettings.masterIp
+```
+
+Rebuild pc31 to apply the new settings:
+```sh
+sudo nixos-rebuild switch --flake .#pc31 --no-write-lock-file
+```
+
+Build the netboot artifacts:
+```sh
+nix build .#nixosConfigurations.netboot.config.system.build.kernel --out-link result-kernel
+nix build .#nixosConfigurations.netboot.config.system.build.netbootRamdisk --out-link result-initrd
+nix build .#nixosConfigurations.netboot.config.system.build.netbootIpxeScript --out-link result-ipxe
 ```
 
 ## 3. Network install (PXE/Netboot)
 Start the local services in two separate terminals:
 
 ```sh
-# Terminal 1: PXE server
-CMDLINE=$(grep '^kernel ' result-ipxe/netboot.ipxe | sed 's/^kernel [^ ]* //')
-sudo nix run nixpkgs#pixiecore -- boot ./result-kernel/bzImage ./result-initrd/initrd --cmdline "$CMDLINE" --dhcp-no-bind
-
-# Terminal 2: Binary cache (defaults to port 5000)
+# Terminal 1: Binary cache
 nix run nixpkgs#harmonia -- --secret-key-file ./secret-key
 
-# If harmonia flags differ on your version, run:
-# nix run nixpkgs#harmonia -- --help
+# Terminal 2: PXE server
+CMDLINE=$(grep '^kernel ' result-ipxe/netboot.ipxe | sed 's/^kernel [^ ]* //')
+sudo nix run nixpkgs#pixiecore -- boot result-kernel/bzImage result-initrd/initrd --cmdline "$CMDLINE"
 ```
 
-On the netboot RAMDisk, run:
+On each client PC, enable PXE/Network boot in BIOS. The PC will boot into a NixOS ramdisk.
 
+On the netboot ramdisk, run:
 ```sh
 cd /installer/repo
 ./setup.sh XX
 ```
-
 Where `XX` is the PC number (e.g., `./setup.sh 5` for `pc05`).
 
-## 4. Partitioning (Disko)
-Declarative configs are in `disko-bios.nix` and `disko-uefi.nix`. The script auto-detects boot mode.
+## 4. Post-install: enable static IPs
+Once all 30 PCs are installed, enable static IPs (10.22.9.X) for the lab network.
+
+Uncomment `./modules/static-ip.nix` in `flake.nix` (both in `mkHost` and `mkColmenaHost`), then deploy:
+```sh
+colmena apply --on @lab
+```
+
+## 5. Partitioning (Disko)
+Declarative configs are in `disko-bios.nix` and `disko-uefi.nix`. The `setup.sh` script auto-detects boot mode.
 
 Target disk: `/dev/sda` with Btrfs label `nixos` and subvolumes:
 - `@root` -> `/`
 - `@home-informatica` -> `/home/informatica`
 - `@snapshots` -> `/var/lib/home-snapshots`
 
-## 5. Home Reset and Snapshots
+## 6. Home Reset and Snapshots
 The `informatica` home directory resets to a clean template on every boot:
 
 - **Template**: generated at build time with VS Code extensions and git config
@@ -103,18 +113,16 @@ vscodeExtensions = [
 ];
 ```
 
-## 6. Post-install management (Colmena)
+## 7. Post-install management (Colmena)
 The master (`pc31`) acts as the control node and pushes updates via SSH:
 
 ```sh
 colmena apply --on @lab
 ```
 
-## 7. Manual rebuild
+## 8. Manual rebuild
 To manually rebuild a single PC from the latest GitHub config:
-
 ```sh
 sudo nixos-rebuild switch --flake github:giovantenne/nixos-lab#pc31 --no-write-lock-file --refresh
 ```
-
 Replace `pc31` with the appropriate hostname (e.g., `pc01`, `pc15`).

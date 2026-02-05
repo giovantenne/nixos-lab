@@ -27,6 +27,8 @@
               ./modules/cache.nix
               ./modules/filesystems.nix
               ./modules/home-reset.nix
+              # Uncomment after all PCs are installed to assign static IPs (10.22.9.X)
+              # ./modules/static-ip.nix
             ];
           };
         };
@@ -43,6 +45,8 @@
               ./modules/cache.nix
               ./modules/filesystems.nix
               ./modules/home-reset.nix
+              # Uncomment after all PCs are installed to assign static IPs (10.22.9.X)
+              # ./modules/static-ip.nix
             ];
             deployment = {
               targetHost = address;
