@@ -42,7 +42,12 @@ sudo nixos-rebuild switch --flake .#pc31 --no-write-lock-file --refresh
 Then build the netboot artifacts (no sudo needed):
 
 ```sh
-nix build .#nixosConfigurations.netboot.config.system.build.netbootRamdisk
+nix build .#nixosConfigurations.netboot.config.system.build.kernel \
+          .#nixosConfigurations.netboot.config.system.build.netbootRamdisk \
+          .#nixosConfigurations.netboot.config.system.build.netbootIpxeScript \
+          --out-link result-kernel \
+          --out-link result-initrd \
+          --out-link result-ipxe
 ```
 
 ## 3. Network install (PXE/Netboot)
@@ -50,7 +55,8 @@ Start the local services in two separate terminals:
 
 ```sh
 # Terminal 1: PXE server
-sudo nix run nixpkgs#pixiecore -- boot ./result/bzImage ./result/initrd --dhcp-no-bind
+CMDLINE=$(grep '^kernel ' result-ipxe/netboot.ipxe | sed 's/^kernel [^ ]* //')
+sudo nix run nixpkgs#pixiecore -- boot ./result-kernel/bzImage ./result-initrd/initrd --cmdline "$CMDLINE" --dhcp-no-bind
 
 # Terminal 2: Binary cache (defaults to port 5000)
 nix run nixpkgs#harmonia -- --secret-key-file ./secret-key
