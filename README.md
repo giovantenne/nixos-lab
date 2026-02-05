@@ -57,7 +57,7 @@ nix build .#nixosConfigurations.netboot.config.system.build.netbootIpxeScript --
 
 Start the local binary cache (required for pre-builds):
 ```sh
-nix run nixpkgs#harmonia -- --secret-key-file ./secret-key
+./scripts/run-harmonia.sh
 ```
 
 Pre-build the PC system closures so installs work offline (fast, shared cache):
