@@ -54,8 +54,11 @@
 
     [org.gnome.shell]
     enabled-extensions=['ding@rastersoft.com', 'dash-to-dock@micxgx.gmail.com']
-    favorite-apps=['com.mitchellh.ghostty.desktop', 'chromium-browser.desktop', 'code.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Calculator.desktop', 'org.gnome.TextEditor.desktop']
+    favorite-apps=['com.mitchellh.ghostty.desktop', 'chromium-browser.desktop', 'code.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.TextEditor.desktop']
     welcome-dialog-last-shown-version='9999'
+
+    [org.gnome.shell.extensions.dash-to-dock]
+    show-trash=false
 
     [org.gnome.settings-daemon.plugins.power]
     sleep-inactive-ac-type='nothing'
@@ -157,7 +160,7 @@
 
   # Neovim.
   programs.neovim.enable = true;
-  programs.neovim.defaultEditor = true;
+  programs.neovim.defaultEditor = false;
 
   # Shell tooling and prompt.
   programs.starship.enable = true;
@@ -241,7 +244,7 @@
     chromium
     vscode
     gcc
-    htop
+    tig
     imagemagick
     ghostscript
     tectonic
@@ -280,6 +283,11 @@
   services.openssh = {
     enable = true;
     settings.PasswordAuthentication = false;
+  };
+
+  environment.sessionVariables = {
+    EDITOR = "gnome-text-editor";
+    VISUAL = "gnome-text-editor";
   };
 
   system.stateVersion = "25.11";
