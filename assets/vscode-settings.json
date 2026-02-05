@@ -9,13 +9,20 @@
   "workbench.welcomePage.walkthroughs.openOnStartup": false,
   "workbench.welcomePage.walkthroughs.enabled": false,
   "workbench.tips.enabled": false,
-  "chat.commandCenter.enabled": false,
-  "chat.agent.enabled": false,
-  "github.copilot.chat.agent.enabled": false,
   "workbench.activityBar.visible": true,
   "workbench.sideBar.location": "left",
   "workbench.auxiliaryBar.visible": false,
+  "workbench.secondarySideBar.visible": false,
+  "workbench.secondarySideBar.defaultVisibility": "hidden",
   "workbench.panel.defaultLocation": "bottom",
+  "chat.commandCenter.enabled": false,
+  "chat.agent.enabled": false,
+  "chat.editor.fontFamily": "",
+  "github.copilot.enable": {
+    "*": false
+  },
+  "github.copilot.chat.enabled": false,
+  "github.copilot.chat.agent.enabled": false,
   "terminal.integrated.defaultProfile.linux": "bash",
   "terminal.integrated.profiles.linux": {
     "bash": {
@@ -23,5 +30,9 @@
       "args": ["-l"]
     }
   },
-  "liveServer.settings.donotShowInfoMsg": true
+  "liveServer.settings.donotShowInfoMsg": true,
+  "liveServer.settings.donotVerifyTags": true,
+  "extensions.ignoreRecommendations": true,
+  "telemetry.telemetryLevel": "off",
+  "redhat.telemetry.enabled": false
 }

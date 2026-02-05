@@ -50,4 +50,13 @@ cp "$ASSETS_DIR/mimeapps.list" "$TEMPLATE_DIR/.config/mimeapps.list"
 mkdir -p "$TEMPLATE_DIR/.config/Code/User"
 cp "$ASSETS_DIR/vscode-settings.json" "$TEMPLATE_DIR/.config/Code/User/settings.json"
 
+# Create VS Code argv.json to use basic password store (avoids gnome-keyring warning)
+mkdir -p "$TEMPLATE_DIR/.vscode"
+cat > "$TEMPLATE_DIR/.vscode/argv.json" << 'EOF'
+{
+  "password-store": "basic",
+  "enable-crash-reporter": false
+}
+EOF
+
 echo "Home template created successfully"

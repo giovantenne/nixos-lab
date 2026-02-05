@@ -17,10 +17,38 @@ let
   snapshotsDir = "/var/lib/home-snapshots";
   homeDirInformatica = "/home/informatica";
   homeDirAdmin = "/home/admin";
-  liveServerExtension = pkgs.vscode-extensions.ritwickdey.liveserver;
-  liveServerExtensionDir = "${liveServerExtension}/share/vscode/extensions/ritwickdey.liveserver";
-  javaExtensionPack = pkgs.vscode-extensions.vscjava.vscode-java-pack;
-  javaExtensionPackDir = "${javaExtensionPack}/share/vscode/extensions/vscjava.vscode-java-pack";
+  # VSCode extensions to pre-install in the template
+  vscodeExtensions = [
+    {
+      pkg = pkgs.vscode-extensions.ritwickdey.liveserver;
+      dir = "ritwickdey.liveserver";
+    }
+    # Microsoft Extension Pack for Java (meta-pack + all individual extensions)
+    {
+      pkg = pkgs.vscode-extensions.vscjava.vscode-java-pack;
+      dir = "vscjava.vscode-java-pack";
+    }
+    {
+      pkg = pkgs.vscode-extensions.redhat.java;
+      dir = "redhat.java";
+    }
+    {
+      pkg = pkgs.vscode-extensions.vscjava.vscode-java-debug;
+      dir = "vscjava.vscode-java-debug";
+    }
+    {
+      pkg = pkgs.vscode-extensions.vscjava.vscode-java-test;
+      dir = "vscjava.vscode-java-test";
+    }
+    {
+      pkg = pkgs.vscode-extensions.vscjava.vscode-maven;
+      dir = "vscjava.vscode-maven";
+    }
+    {
+      pkg = pkgs.vscode-extensions.vscjava.vscode-java-dependency;
+      dir = "vscjava.vscode-java-dependency";
+    }
+  ];
 
   # External scripts
   createTemplateScript = ../scripts/create-home-template.sh;
@@ -35,8 +63,15 @@ in
       # Create informatica template
       ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDirInformatica}" "${gitConfigInformatica.name}" "${gitConfigInformatica.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}"
       mkdir -p "${templateDirInformatica}/.vscode/extensions"
-      cp -a "${liveServerExtensionDir}" "${templateDirInformatica}/.vscode/extensions/"
-      cp -a "${javaExtensionPackDir}" "${templateDirInformatica}/.vscode/extensions/"
+      ${builtins.concatStringsSep "\n      " (map (ext: ''cp -a "${ext.pkg}/share/vscode/extensions/${ext.dir}" "${templateDirInformatica}/.vscode/extensions/"'') vscodeExtensions)}
+      # Fix Nix store read-only permissions so extensions can write temp files
+      chmod -R u+w "${templateDirInformatica}/.vscode/extensions"
+      # Remove LiveServer announcement to suppress the "NEW" toast notification
+      ${pkgs.jq}/bin/jq 'del(.announcement)' \
+        "${templateDirInformatica}/.vscode/extensions/ritwickdey.liveserver/package.json" \
+        > "${templateDirInformatica}/.vscode/extensions/ritwickdey.liveserver/package.json.tmp"
+      mv "${templateDirInformatica}/.vscode/extensions/ritwickdey.liveserver/package.json.tmp" \
+        "${templateDirInformatica}/.vscode/extensions/ritwickdey.liveserver/package.json"
       chown -R informatica:users "${templateDirInformatica}"
 
       # Create admin template
