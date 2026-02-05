@@ -56,8 +56,12 @@ nix build .#nixosConfigurations.netboot.config.system.build.netbootIpxeScript --
 ```
 
 ## 3. Network install (PXE/Netboot)
-Start the local services in two separate terminals:
+Before starting PXE, temporarily remove the static IP from pc31 so pixiecore uses only the DHCP address:
+```sh
+sudo ip addr del 10.22.9.31/24 dev enp0s3
+```
 
+Start the local services in two separate terminals:
 ```sh
 # Terminal 1: Binary cache
 nix run nixpkgs#harmonia -- --secret-key-file ./secret-key
@@ -76,15 +80,12 @@ cd /installer/repo
 ```
 Where `XX` is the PC number (e.g., `./setup.sh 5` for `pc05`).
 
-## 4. Post-install: enable static IPs
-Once all 30 PCs are installed, enable static IPs (10.22.9.X) for the lab network.
-
-Uncomment `./modules/static-ip.nix` in `flake.nix` (both in `mkHost` and `mkColmenaHost`), then deploy:
+When done, restore the static IP (or just reboot pc31):
 ```sh
-colmena apply --on @lab
+sudo ip addr add 10.22.9.31/24 dev enp0s3
 ```
 
-## 5. Partitioning (Disko)
+## 4. Partitioning (Disko)
 Declarative configs are in `disko-bios.nix` and `disko-uefi.nix`. The `setup.sh` script auto-detects boot mode.
 
 Target disk: `/dev/sda` with Btrfs label `nixos` and subvolumes:
@@ -92,7 +93,7 @@ Target disk: `/dev/sda` with Btrfs label `nixos` and subvolumes:
 - `@home-informatica` -> `/home/informatica`
 - `@snapshots` -> `/var/lib/home-snapshots`
 
-## 6. Home Reset and Snapshots
+## 5. Home Reset and Snapshots
 The `informatica` home directory resets to a clean template on every boot:
 
 - **Template**: generated at build time with VS Code extensions and git config
@@ -113,14 +114,14 @@ vscodeExtensions = [
 ];
 ```
 
-## 7. Post-install management (Colmena)
+## 6. Post-install management (Colmena)
 The master (`pc31`) acts as the control node and pushes updates via SSH:
 
 ```sh
 colmena apply --on @lab
 ```
 
-## 8. Manual rebuild
+## 7. Manual rebuild
 To manually rebuild a single PC from the latest GitHub config:
 ```sh
 sudo nixos-rebuild switch --flake github:giovantenne/nixos-lab#pc31 --no-write-lock-file --refresh
