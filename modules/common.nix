@@ -98,7 +98,6 @@ in
     lidSwitch = "ignore";
     lidSwitchExternalPower = "ignore";
     lidSwitchDocked = "ignore";
-    idleAction = "ignore";
   };
 
   # VirtualBox guest additions (harmless on bare metal: the kernel module
