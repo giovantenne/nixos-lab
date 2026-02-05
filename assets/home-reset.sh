@@ -45,6 +45,7 @@ fi
 
 # Ensure correct ownership
 chown -R informatica:users "$HOME_DIR"
+chmod -R u+rwX,go+rX "$HOME_DIR"
 chmod 755 "$HOME_DIR"
 
 echo "Home reset completed"
