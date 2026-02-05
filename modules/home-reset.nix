@@ -52,6 +52,13 @@ in
     wantedBy = [ "multi-user.target" ];
     before = [ "display-manager.service" ];
     after = [ "local-fs.target" ];
+    unitConfig = {
+      RequiresMountsFor = [
+        "/home/informatica"
+        "/var/lib/home-template"
+        "/var/lib/home-snapshots"
+      ];
+    };
     path = [ pkgs.btrfs-progs pkgs.findutils pkgs.coreutils ];
     serviceConfig = {
       Type = "oneshot";
