@@ -34,10 +34,10 @@ chmod 600 ~/.ssh/id_ed25519
 ## 2. Prepare the controller (pc31)
 All commands below run from `~/nixos-config` on `pc31`.
 
-Update `masterIp` at the top of `flake.nix` with the DHCP-assigned IP of `pc31`:
+Update `masterIp` and `ifaceName` at the top of `flake.nix`:
 ```sh
 ip -4 addr                  # find the DHCP address
-vim flake.nix               # edit masterIp on line 15
+vim flake.nix               # edit masterIp and ifaceName
 ```
 
 Rebuild pc31 to apply the new settings:
