@@ -103,7 +103,7 @@ in
         "/var/lib/home-snapshots"
       ];
     };
-    path = [ pkgs.btrfs-progs pkgs.findutils pkgs.coreutils ];
+    path = [ pkgs.btrfs-progs pkgs.dconf pkgs.findutils pkgs.coreutils ];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = "${pkgs.bash}/bin/bash ${homeResetScript} ${snapshotsDir} ${homeDirInformatica} ${templateDirInformatica} informatica:users";

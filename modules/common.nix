@@ -86,10 +86,10 @@
   services.gnome.gnome-initial-setup.enable = false;
 
   # Disable system sleep/idle actions
-  services.logind = {
-    lidSwitch = "ignore";
-    lidSwitchExternalPower = "ignore";
-    lidSwitchDocked = "ignore";
+  services.logind.settings.Login = {
+    HandleLidSwitch = "ignore";
+    HandleLidSwitchExternalPower = "ignore";
+    HandleLidSwitchDocked = "ignore";
   };
 
   # VirtualBox guest additions (harmless on bare metal: the kernel module
@@ -239,6 +239,11 @@
     source = ../scripts/gnome-user-setup.sh;
     mode = "0755";
   };
+
+  # Ristretto wallpapers for random selection at home-reset
+  environment.etc."lab/backgrounds/1-ristretto.jpg".source = ../assets/backgrounds/1-ristretto.jpg;
+  environment.etc."lab/backgrounds/2-ristretto.jpg".source = ../assets/backgrounds/2-ristretto.jpg;
+  environment.etc."lab/backgrounds/3-ristretto.jpg".source = ../assets/backgrounds/3-ristretto.jpg;
 
   programs.ssh.extraConfig = ''
     Host localhost 127.0.0.1 10.22.9.* pc*

@@ -28,6 +28,10 @@ scripts/
   home-reset.sh            # Boot-time snapshot rotation + home reset
   gnome-user-setup.sh      # GNOME favorites and welcome setup
 assets/
+  backgrounds/             # Ristretto wallpapers (random at each home-reset)
+    1-ristretto.jpg
+    2-ristretto.jpg
+    3-ristretto.jpg
   mimeapps.list            # Default browser = Chromium
   vscode-settings.json     # VS Code defaults (no telemetry, no updates)
 ```

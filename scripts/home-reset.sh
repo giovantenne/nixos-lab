@@ -62,6 +62,31 @@ find "$HOME_DIR" -mindepth 1 -delete 2>/dev/null || true
 echo "Copying template to home..."
 cp -a "$TEMPLATE_DIR/." "$HOME_DIR/"
 
+# Pick a random wallpaper and write dconf user database
+BACKGROUNDS_DIR="/etc/lab/backgrounds"
+if [ -d "$BACKGROUNDS_DIR" ]; then
+  WALLPAPERS=("$BACKGROUNDS_DIR"/*.jpg)
+  if [ ${#WALLPAPERS[@]} -gt 0 ]; then
+    PICK="${WALLPAPERS[$((RANDOM % ${#WALLPAPERS[@]}))]}"
+    DCONF_DIR="$HOME_DIR/.config/dconf"
+    mkdir -p "$DCONF_DIR"
+    KEYFILE_DIR=$(mktemp -d)
+    cat > "$KEYFILE_DIR/user.txt" <<EOF
+[org/gnome/desktop/background]
+picture-uri='file://${PICK}'
+picture-uri-dark='file://${PICK}'
+picture-options='zoom'
+
+[org/gnome/desktop/screensaver]
+picture-uri='file://${PICK}'
+picture-options='zoom'
+EOF
+    dconf compile "$DCONF_DIR/user" "$KEYFILE_DIR"
+    rm -rf "$KEYFILE_DIR"
+    echo "Wallpaper set to $(basename "$PICK")"
+  fi
+fi
+
 # Ensure correct ownership
 chown -R "$OWNER" "$HOME_DIR"
 chmod 700 "$HOME_DIR"
