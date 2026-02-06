@@ -15,13 +15,11 @@ public-key                 # Binary cache public key (for reference)
 modules/
   common.nix               # Shared system config (GNOME, packages, shells, services)
   hardware.nix             # Generic hardware detection (replaces per-host hardware-configuration.nix)
+  networking.nix           # Hostname + static IP with shared iface name
   users.nix                # User accounts (admin + informatica student)
   cache.nix                # Binary cache client (points to pc31's Harmonia)
   filesystems.nix          # Btrfs subvolume mount declarations
   home-reset.nix           # Student home directory templating + boot-time reset
-hosts/
-  pc01/ .. pc31/
-    default.nix            # Host identity: hostname, static IP, imports
 scripts/
   run-harmonia.sh          # Launches Harmonia binary cache server
   create-home-template.sh  # Builds clean home directory template
@@ -33,7 +31,6 @@ assets/
     2-ristretto.jpg
     3-ristretto.jpg
   mimeapps.list            # Default browser = Chromium
-  vscode-settings.json     # VS Code defaults (no telemetry, no updates)
 ```
 
 ## Build / Deploy Commands
@@ -68,9 +65,9 @@ To validate changes, build the affected host configuration (`nix build`).
 
 ## Architecture Notes
 
-- Hosts pc01-pc31 are generated programmatically via `builtins.genList` + `mkHost`/`mkColmenaHost` in `flake.nix`. Do not create host configs manually.
-- Host `default.nix` files handle identity only (hostname, IP, hardware import). Infrastructure modules (cache, filesystems, home-reset) are composed at the flake level.
-- Custom settings flow from `flake.nix` via `specialArgs = { inherit labSettings; }` to modules that need them (currently `cache.nix`).
+- Hosts pc01-pc31 are generated programmatically via `builtins.genList` + `mkHost`/`mkColmenaHost` in `flake.nix`.
+- Hostname + static IP are centralized in `flake.nix` and applied in `modules/networking.nix`.
+- Custom settings flow from `flake.nix` via `specialArgs` (`labSettings`, `hostName`, `hostIp`) to modules that need them.
 - No custom NixOS options are declared (`options = { ... }`). This repo only sets existing nixpkgs options.
 - VirtualBox guest additions are enabled by default via `mkDefault` in `common.nix` (harmless on bare metal).
 - Hardware detection uses `modules/hardware.nix` with `not-detected.nix` for automatic driver loading. No per-host hardware-configuration.nix files are needed.
@@ -87,7 +84,7 @@ To validate changes, build the affected host configuration (`nix build`).
 ### Module Signatures
 Use only the arguments the module actually needs:
 ```nix
-{ ... }:            # When no module args are used (most host configs)
+{ ... }:            # When no module args are used
 { config, pkgs, lib, ... }:   # When config/pkgs/lib are needed
 { labSettings, ... }:          # When consuming specialArgs
 ```
@@ -144,11 +141,9 @@ Use only the arguments the module actually needs:
 | Shell variables  | UPPER_SNAKE_CASE | `PC_NUMBER`, `TEMPLATE_DIR`                 |
 | NixOS options    | Standard dotted  | `services.openssh.enable`                   |
 | Helper functions | `mk` prefix      | `mkHost`, `mkColmenaHost`                   |
-| Host directories | Concatenated     | `pc01`, `pc02`, ..., `pc31`                 |
 
 ### Imports
-- Host files use relative paths: `../../modules/hardware.nix`, `../../modules/common.nix`
-- Flake uses root-relative: `./hosts/${name}/default.nix`, `./modules/cache.nix`
+- Flake uses root-relative: `./modules/networking.nix`, `./modules/cache.nix`
 - Script references from modules: `../scripts/create-home-template.sh`
 
 ## Shell Script Style
@@ -175,30 +170,7 @@ set -euo pipefail
 - SSH password auth is disabled; key-based only
 - `users.mutableUsers = false` enforces declarative user management
 
-## Host Config Template
+## Host Configuration
 
-Every host `default.nix` follows this 22-line template (only hostname and IP vary):
-
-```nix
-{ ... }:
-{
-  imports = [
-    ../../modules/hardware.nix
-    ../../modules/common.nix
-    ../../modules/users.nix
-  ];
-  networking.hostName = "pcXX";
-  networking.interfaces.enp0s3 = {
-    useDHCP = true;
-  };
-  networking.interfaces.enp0s3.ipv4.addresses = [
-    {
-      address = "10.22.9.XX";
-      prefixLength = 24;
-    }
-  ];
-}
-```
-
-Do not add additional logic to host files. Shared configuration belongs in
-`modules/`. Infrastructure modules are attached at the flake level.
+Hostname + static IP are generated in `flake.nix`. The shared interface name
+is configured via `labSettings.ifaceName` and applied in `modules/networking.nix`.

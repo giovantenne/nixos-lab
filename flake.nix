@@ -21,20 +21,28 @@
       padNumber = n: if n < 10 then "0${toString n}" else toString n;
       labSettings = {
         inherit masterIp;
+        ifaceName = "enp0s3";
         cachePublicKey = "lab-cache-key:jJsA9nDLNlyzhBOj5rfSKcEL2IwNspxrbNCyqmvdUvI=";
         cachePort = 5000;
       };
       mkHost = n:
-        let name = "pc${padNumber n}";
-        in {
+        let
+          name = "pc${padNumber n}";
+          hostIp = "10.22.9.${toString n}";
+        in
+        {
           inherit name;
           value = nixpkgs.lib.nixosSystem {
             inherit system;
-            specialArgs = { inherit labSettings; };
+            specialArgs = {
+              inherit labSettings;
+              inherit hostIp;
+              hostName = name;
+            };
             modules = [
               disko.nixosModules.disko
               ./disko-uefi.nix
-              ./hosts/${name}/default.nix
+              ./modules/networking.nix
               ./modules/cache.nix
               ./modules/filesystems.nix
               ./modules/home-reset.nix
@@ -44,15 +52,21 @@
       mkColmenaHost = n:
         let
           name = "pc${padNumber n}";
-          address = "10.22.9.${toString n}";
+          hostIp = "10.22.9.${toString n}";
+          address = hostIp;
         in
         {
           inherit name;
           value = {
+            specialArgs = {
+              inherit labSettings;
+              inherit hostIp;
+              hostName = name;
+            };
             imports = [
               disko.nixosModules.disko
               ./disko-uefi.nix
-              ./hosts/${name}/default.nix
+              ./modules/networking.nix
               ./modules/cache.nix
               ./modules/filesystems.nix
               ./modules/home-reset.nix
@@ -99,10 +113,15 @@
         };
         # pc31 (master) deploys to itself locally
         pc31 = {
+          specialArgs = {
+            inherit labSettings;
+            hostIp = "10.22.9.31";
+            hostName = "pc31";
+          };
           imports = [
             disko.nixosModules.disko
             ./disko-uefi.nix
-            ./hosts/pc31/default.nix
+            ./modules/networking.nix
             ./modules/cache.nix
             ./modules/filesystems.nix
             ./modules/home-reset.nix
