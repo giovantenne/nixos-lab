@@ -17,6 +17,7 @@
 
       system = "x86_64-linux";
       pcNumbers = builtins.genList (n: n + 1) 31;
+      clientNumbers = builtins.genList (n: n + 1) 30;
       padNumber = n: if n < 10 then "0${toString n}" else toString n;
       labSettings = {
         inherit masterIp;
@@ -49,6 +50,8 @@
           inherit name;
           value = {
             imports = [
+              disko.nixosModules.disko
+              ./disko-uefi.nix
               ./hosts/${name}/default.nix
               ./modules/cache.nix
               ./modules/filesystems.nix
@@ -56,8 +59,6 @@
             ];
             deployment = {
               targetHost = address;
-              targetUser = "root";
-              buildOnTarget = false;
               tags = [ "lab" ];
             };
           };
@@ -96,6 +97,21 @@
             buildOnTarget = false;
           };
         };
-      } // builtins.listToAttrs (map mkColmenaHost pcNumbers);
+        # pc31 (master) deploys to itself locally
+        pc31 = {
+          imports = [
+            disko.nixosModules.disko
+            ./disko-uefi.nix
+            ./hosts/pc31/default.nix
+            ./modules/cache.nix
+            ./modules/filesystems.nix
+            ./modules/home-reset.nix
+          ];
+          deployment = {
+            targetHost = "localhost";
+            tags = [ "master" ];
+          };
+        };
+      } // builtins.listToAttrs (map mkColmenaHost clientNumbers);
     };
 }

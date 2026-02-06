@@ -63,7 +63,9 @@ in
       # Create informatica template
       ${pkgs.bash}/bin/bash ${createTemplateScript} "${templateDirInformatica}" "${gitConfigInformatica.name}" "${gitConfigInformatica.email}" "${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update" "${assetsDir}"
       mkdir -p "${templateDirInformatica}/.vscode/extensions"
-      ${builtins.concatStringsSep "\n      " (map (ext: ''cp -a "${ext.pkg}/share/vscode/extensions/${ext.dir}" "${templateDirInformatica}/.vscode/extensions/"'') vscodeExtensions)}
+      ${builtins.concatStringsSep "\n      " (map (ext:
+        ''cp -a "${ext.pkg}/share/vscode/extensions/${ext.dir}" "${templateDirInformatica}/.vscode/extensions/"''
+      ) vscodeExtensions)}
       # Fix Nix store read-only permissions so extensions can write temp files
       chmod -R u+w "${templateDirInformatica}/.vscode/extensions"
       # Remove LiveServer announcement to suppress the "NEW" toast notification
@@ -101,10 +103,10 @@ in
         "/var/lib/home-snapshots"
       ];
     };
-    path = [ pkgs.acl pkgs.btrfs-progs pkgs.findutils pkgs.coreutils ];
+    path = [ pkgs.btrfs-progs pkgs.findutils pkgs.coreutils ];
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = "${pkgs.bash}/bin/bash ${homeResetScript} ${snapshotsDir} ${homeDirInformatica} ${templateDirInformatica}";
+      ExecStart = "${pkgs.bash}/bin/bash ${homeResetScript} ${snapshotsDir} ${homeDirInformatica} ${templateDirInformatica} informatica:users";
       RemainAfterExit = true;
     };
   };

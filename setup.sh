@@ -9,7 +9,12 @@ fi
 PC_NUMBER="$1"
 
 if ! [[ "$PC_NUMBER" =~ ^[0-9]+$ ]]; then
-  echo "PC number must be numeric." >&2
+  echo "Error: PC number must be numeric." >&2
+  exit 1
+fi
+
+if [[ "$PC_NUMBER" -lt 1 || "$PC_NUMBER" -gt 31 ]]; then
+  echo "Error: PC number must be between 1 and 31." >&2
   exit 1
 fi
 

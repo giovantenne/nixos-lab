@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ $# -ne 5 ]]; then
+  echo "Usage: create-home-template.sh <template-dir> <git-name> <git-email> <xdg-bin> <assets-dir>" >&2
+  exit 1
+fi
+
 TEMPLATE_DIR="$1"
 GIT_NAME="$2"
 GIT_EMAIL="$3"

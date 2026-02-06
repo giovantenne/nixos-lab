@@ -11,6 +11,7 @@ flake.nix                  # Entry point: generates pc01-pc31 configs + netboot 
 flake.lock                 # Pinned inputs (nixpkgs nixos-25.11, disko)
 disko-uefi.nix             # Declarative disk partitioning (UEFI boot)
 setup.sh                   # Installer script for PXE-booted client PCs
+public-key                 # Binary cache public key (for reference)
 modules/
   common.nix               # Shared system config (GNOME, packages, shells, services)
   hardware.nix             # Generic hardware detection (replaces per-host hardware-configuration.nix)
@@ -28,6 +29,7 @@ scripts/
   gnome-user-setup.sh      # GNOME favorites and welcome setup
 assets/
   mimeapps.list            # Default browser = Chromium
+  vscode-settings.json     # VS Code defaults (no telemetry, no updates)
 ```
 
 ## Build / Deploy Commands
@@ -68,7 +70,7 @@ To validate changes, build the affected host configuration (`nix build`).
 - No custom NixOS options are declared (`options = { ... }`). This repo only sets existing nixpkgs options.
 - VirtualBox guest additions are enabled by default via `mkDefault` in `common.nix` (harmless on bare metal).
 - Hardware detection uses `modules/hardware.nix` with `not-detected.nix` for automatic driver loading. No per-host hardware-configuration.nix files are needed.
-- GRUB is configured to support both BIOS and UEFI. The ESP mount uses `nofail` so it is silently skipped on BIOS machines.
+- GRUB is configured for UEFI only. The ESP is installed as removable (`efiInstallAsRemovable`) so no NVRAM modification is needed. BIOS boot is not supported; `setup.sh` enforces UEFI at install time.
 
 ## Nix Code Style
 

@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-secret_key="${repo_root}/secret-key"
+REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+SECRET_KEY="${REPO_ROOT}/secret-key"
 
-if [ ! -f "${secret_key}" ]; then
-  echo "Missing ${secret_key}. Copy the secret-key into the repo root." >&2
+if [ ! -f "${SECRET_KEY}" ]; then
+  echo "Missing ${SECRET_KEY}. Copy the secret-key into the repo root." >&2
   exit 1
 fi
 
-config_file=$(mktemp)
-trap 'rm -f "${config_file}"' EXIT
+CONFIG_FILE=$(mktemp)
+trap 'rm -f "${CONFIG_FILE}"' EXIT
 
-cat > "${config_file}" <<EOF
+cat > "${CONFIG_FILE}" <<EOF
 bind = "[::]:5000"
-sign_key_paths = ["${secret_key}"]
+sign_key_paths = ["${SECRET_KEY}"]
 EOF
 
-CONFIG_FILE="${config_file}" exec nix run nixpkgs#harmonia
+# Run without exec so the trap fires on exit
+CONFIG_FILE="${CONFIG_FILE}" nix run nixpkgs#harmonia

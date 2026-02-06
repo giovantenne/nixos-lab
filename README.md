@@ -58,7 +58,7 @@ nix build .#nixosConfigurations.pc{01..30}.config.system.build.toplevel
 ```
 
 ## 3. Network install (PXE/Netboot)
-Remove the static IP so pixiecore uses only the DHCP address:
+Temporarily remove the static IP so pixiecore sees only the DHCP address (it returns after a reboot):
 ```sh
 iface=$(ip -4 addr | awk '/10.22.9.31/{print $NF; exit}')
 sudo ip addr del 10.22.9.31/24 dev "$iface"

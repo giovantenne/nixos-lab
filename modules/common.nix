@@ -4,20 +4,20 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # Bootloader: GRUB for UEFI (installs to ESP as removable, no NVRAM needed)
-  boot.loader.grub.enable = true;
-  boot.loader.grub.device = "nodev";
-  boot.loader.grub.efiSupport = true;
-  boot.loader.grub.efiInstallAsRemovable = true;
+  boot.loader.grub = {
+    enable = true;
+    device = "nodev";
+    efiSupport = true;
+    efiInstallAsRemovable = true;
+  };
   boot.loader.efi.efiSysMountPoint = "/boot";
 
   # Enable networking
   networking.networkmanager.enable = true;
   networking.firewall.enable = false;
 
-  # Set your time zone.
   time.timeZone = "Europe/Rome";
 
-  # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
 
   i18n.extraLocaleSettings = {
@@ -32,10 +32,9 @@
     LC_TIME = "it_IT.UTF-8";
   };
 
-  # Enable the X11 windowing system.
   services.xserver.enable = true;
 
-  # Enable the GNOME Desktop Environment.
+  # GNOME Desktop Environment
   services.displayManager.gdm.enable = true;
   services.desktopManager.gnome.enable = true;
 
@@ -43,10 +42,13 @@
   services.gnome.gnome-keyring.enable = lib.mkForce false;
   services.desktopManager.gnome.extraGSettingsOverrides = ''
     [org.gnome.desktop.interface]
+    color-scheme='prefer-dark'
     enable-animations=true
     font-name='Liberation Sans 11'
     document-font-name='Liberation Sans 11'
     monospace-font-name='JetBrainsMono Nerd Font Mono 12'
+    icon-theme='Yaru-yellow'
+    gtk-theme='Adwaita-dark'
 
     [org.gnome.desktop.wm.preferences]
     button-layout='appmenu:minimize,maximize,close'
@@ -94,19 +96,13 @@
   # simply fails to load and the service does not start).
   virtualisation.virtualbox.guest.enable = lib.mkDefault true;
 
-  # Configure keymap in X11
-  services.xserver.xkb = {
-    layout = "it";
-    variant = "";
-  };
-
-  # Configure console keymap
+  # Keyboard layout
+  services.xserver.xkb.layout = "it";
   console.keyMap = "it2";
 
-  # Enable CUPS to print documents.
   services.printing.enable = true;
 
-  # Enable sound with pipewire.
+  # Sound (PipeWire)
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -144,9 +140,32 @@
     wantedBy = [ "default.target" ];
   };
 
-  # Ghostty defaults for all users.
+  # Ghostty defaults for all users (Ristretto color theme).
   environment.etc."xdg/ghostty/config".text = ''
     font-size = 14
+    background = #2c2525
+    foreground = #e6d9db
+    cursor-color = #c3b7b8
+    selection-background = #403e41
+    selection-foreground = #e6d9db
+    palette = 0=#72696a
+    palette = 1=#fd6883
+    palette = 2=#adda78
+    palette = 3=#f9cc6c
+    palette = 4=#f38d70
+    palette = 5=#a8a9eb
+    palette = 6=#85dacc
+    palette = 7=#e6d9db
+    palette = 8=#948a8b
+    palette = 9=#ff8297
+    palette = 10=#c8e292
+    palette = 11=#fcd675
+    palette = 12=#f8a788
+    palette = 13=#bebffd
+    palette = 14=#9bf1e1
+    palette = 15=#f1e5e7
+    window-padding-x = 8
+    window-padding-y = 4
   '';
 
   environment.etc."chromium/policies/managed/homepage.json".text = ''
@@ -158,37 +177,37 @@
     }
   '';
 
-  # Neovim.
   programs.neovim.enable = true;
-  programs.neovim.defaultEditor = false;
 
   # Shell tooling and prompt.
   programs.starship.enable = true;
+  # Starship prompt (Ristretto palette: warm oranges, soft pinks, muted tones)
   programs.starship.settings = {
     add_newline = false;
     command_timeout = 200;
     format = "$hostname$directory$git_branch$git_status$character";
     character = {
-      error_symbol = "[✗](bold cyan)";
-      success_symbol = "[❯](bold cyan)";
+      error_symbol = "[✗](bold #fd6883)";
+      success_symbol = "[❯](bold #f38d70)";
     };
     hostname = {
       ssh_only = false;
-      format = "[$hostname](bold yellow):";
+      format = "[$hostname](bold #f9cc6c):";
     };
     directory = {
       truncation_length = 2;
       truncation_symbol = "…/";
-      repo_root_style = "bold cyan";
+      style = "#e6d9db";
+      repo_root_style = "bold #f38d70";
       repo_root_format = "[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) ";
     };
     git_branch = {
       format = "[$branch]($style) ";
-      style = "italic cyan";
+      style = "italic #adda78";
     };
     git_status = {
       format = "[$all_status]($style)";
-      style = "cyan";
+      style = "#85dacc";
       ahead = "⇡\${count} ";
       diverged = "⇕⇡\${ahead_count}⇣\${behind_count} ";
       behind = "⇣\${count} ";
@@ -203,10 +222,10 @@
     };
   };
   programs.bash.shellAliases = {
-    ls = "eza --group-directories-first";
-    lsa = "eza -a --group-directories-first";
-    lt = "eza -T -L 2 --group-directories-first";
-    lta = "eza -a -T -L 2 --group-directories-first";
+    ls = "eza --icons --group-directories-first";
+    lsa = "eza --icons -a --group-directories-first";
+    lt = "eza --icons -T -L 2 --group-directories-first";
+    lta = "eza --icons -a -T -L 2 --group-directories-first";
     ff = "fzf";
   };
   programs.bash.interactiveShellInit = ''
@@ -238,7 +257,6 @@
     eza
     fd
     fzf
-    starship
     ghostty
     git
     chromium
@@ -267,6 +285,7 @@
     xdg-user-dirs
     gnomeExtensions.desktop-icons-ng-ding
     gnomeExtensions.dash-to-dock
+    yaru-theme
   ];
 
   systemd.user.services.lab-gnome-setup = {
