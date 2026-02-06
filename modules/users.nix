@@ -24,6 +24,13 @@
     hashedPassword = "$6$d7Y6egRmcsYHzkJE$sODDV60wD7qra8HAKgzAIOk2/EMMTqpb7LW2rbkvp/FNu9muJZeQT0FIbipUesftWrnGPlszKyKGmNtVdEbVs1";
   };
 
+  users.users.docente = {
+    isNormalUser = true;
+    description = "docente";
+    extraGroups = [ "networkmanager" "docker" ];
+    hashedPassword = "$6$6g9aF3VchadHSTHG$wry4cmIljUGHB4SamaWB7ZeTtjbrBmRpP323AX5Jw3xMkRn4N.is6cH3J/0XgE8Xk01FhzwMLtA4KISsVMAbK.";
+  };
+
   services.displayManager.autoLogin = {
     enable = true;
     user = "informatica";
