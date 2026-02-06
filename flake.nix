@@ -11,9 +11,12 @@
 
   outputs = { self, nixpkgs, disko }:
     let
-      # ====== EDIT THIS: set to the DHCP IP of pc31 ======
+      # ====== EDIT THESE ======
+      # DHCP IP of pc31 (master controller)
       masterIp = "MASTER_IP";
-      # ===================================================
+      # Shared interface name on lab PCs
+      ifaceName = "enp0s3";
+      # =======================
 
       system = "x86_64-linux";
       pcNumbers = builtins.genList (n: n + 1) 31;
@@ -21,7 +24,7 @@
       padNumber = n: if n < 10 then "0${toString n}" else toString n;
       labSettings = {
         inherit masterIp;
-        ifaceName = "enp0s3";
+        inherit ifaceName;
         cachePublicKey = "lab-cache-key:jJsA9nDLNlyzhBOj5rfSKcEL2IwNspxrbNCyqmvdUvI=";
         cachePort = 5000;
       };
