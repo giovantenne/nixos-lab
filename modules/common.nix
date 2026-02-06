@@ -6,7 +6,7 @@
   # Bootloader: GRUB for UEFI (installs to ESP as removable, no NVRAM needed)
   boot.loader.grub = {
     enable = true;
-    device = "nodev";
+    devices = [ "nodev" ];
     efiSupport = true;
     efiInstallAsRemovable = true;
   };

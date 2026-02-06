@@ -42,6 +42,9 @@
             modules = [
               disko.nixosModules.disko
               ./disko-uefi.nix
+              ./modules/hardware.nix
+              ./modules/common.nix
+              ./modules/users.nix
               ./modules/networking.nix
               ./modules/cache.nix
               ./modules/filesystems.nix
@@ -66,6 +69,9 @@
             imports = [
               disko.nixosModules.disko
               ./disko-uefi.nix
+              ./modules/hardware.nix
+              ./modules/common.nix
+              ./modules/users.nix
               ./modules/networking.nix
               ./modules/cache.nix
               ./modules/filesystems.nix
@@ -121,6 +127,9 @@
           imports = [
             disko.nixosModules.disko
             ./disko-uefi.nix
+            ./modules/hardware.nix
+            ./modules/common.nix
+            ./modules/users.nix
             ./modules/networking.nix
             ./modules/cache.nix
             ./modules/filesystems.nix
