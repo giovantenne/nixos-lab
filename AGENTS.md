@@ -9,7 +9,7 @@ Disko, and Colmena. The master controller (`pc31`, IP `10.22.9.31`) deploys to
 ```
 flake.nix                  # Entry point: generates pc01-pc31 configs + netboot + Colmena
 flake.lock                 # Pinned inputs (nixpkgs nixos-25.11, disko)
-disko-uefi.nix             # Declarative disk partitioning (UEFI boot)
+disko-bios.nix             # Declarative disk partitioning (BIOS boot)
 setup.sh                   # Installer script for PXE-booted client PCs
 public-key                 # Binary cache public key (for reference)
 modules/
@@ -71,7 +71,7 @@ To validate changes, build the affected host configuration (`nix build`).
 - No custom NixOS options are declared (`options = { ... }`). This repo only sets existing nixpkgs options.
 - VirtualBox guest additions are enabled by default via `mkDefault` in `common.nix` (harmless on bare metal).
 - Hardware detection uses `modules/hardware.nix` with `not-detected.nix` for automatic driver loading. No per-host hardware-configuration.nix files are needed.
-- GRUB is configured for UEFI only. The ESP is installed as removable (`efiInstallAsRemovable`) so no NVRAM modification is needed. BIOS boot is not supported; `setup.sh` enforces UEFI at install time.
+- GRUB is configured for BIOS only. GRUB installs to the MBR of `/dev/sda`. UEFI boot is not supported; `setup.sh` enforces BIOS at install time.
 
 ## Nix Code Style
 

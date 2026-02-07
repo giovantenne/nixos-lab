@@ -44,7 +44,7 @@
             };
             modules = [
               disko.nixosModules.disko
-              ./disko-uefi.nix
+              ./disko-bios.nix
               ./modules/hardware.nix
               ./modules/common.nix
               ./modules/users.nix
@@ -71,7 +71,7 @@
             };
             imports = [
               disko.nixosModules.disko
-              ./disko-uefi.nix
+              ./disko-bios.nix
               ./modules/hardware.nix
               ./modules/common.nix
               ./modules/users.nix
@@ -129,7 +129,7 @@
           };
           imports = [
             disko.nixosModules.disko
-            ./disko-uefi.nix
+            ./disko-bios.nix
             ./modules/hardware.nix
             ./modules/common.nix
             ./modules/users.nix
