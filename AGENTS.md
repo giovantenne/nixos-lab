@@ -12,14 +12,18 @@ flake.lock                 # Pinned inputs (nixpkgs nixos-25.11, disko)
 disko-bios.nix             # Declarative disk partitioning (BIOS boot)
 setup.sh                   # Installer script for PXE-booted client PCs
 public-key                 # Binary cache public key (for reference)
+veyon-public-key.pem       # Veyon RSA public key (deployed to all PCs)
+pkgs/
+  veyon.nix                # Veyon package derivation (not in nixpkgs)
 modules/
   common.nix               # Shared system config (GNOME, packages, shells, services)
   hardware.nix             # Generic hardware detection (replaces per-host hardware-configuration.nix)
   networking.nix           # Hostname + static IP with shared iface name
-  users.nix                # User accounts (admin + informatica student)
+  users.nix                # User accounts (admin + docente + informatica student, veyon-master group)
   cache.nix                # Binary cache client (points to pc31's Harmonia)
   filesystems.nix          # Btrfs subvolume mount declarations
   home-reset.nix           # Student home directory templating + boot-time reset
+  veyon.nix                # Veyon service, public key, firewall, base config
 scripts/
   run-harmonia.sh          # Launches Harmonia binary cache server
   create-home-template.sh  # Builds clean home directory template
@@ -72,6 +76,9 @@ To validate changes, build the affected host configuration (`nix build`).
 - VirtualBox guest additions are enabled by default via `mkDefault` in `common.nix` (harmless on bare metal).
 - Hardware detection uses `modules/hardware.nix` with `not-detected.nix` for automatic driver loading. No per-host hardware-configuration.nix files are needed.
 - GRUB is configured for BIOS only. GRUB installs to the MBR of `/dev/sda`. UEFI boot is not supported; `setup.sh` enforces BIOS at install time.
+- `labOverlay` in `flake.nix` provides custom packages (e.g. `pkgs.veyon` via `callPackage ./pkgs/veyon.nix {}`). Applied via `nixpkgs.overlays` in each host's module list and in `colmena.meta.nixpkgs`.
+- Veyon classroom management is configured in `modules/veyon.nix`: runs `veyon-service` on all PCs, deploys the public key, generates a `Veyon.conf` with all 30 client PCs pre-mapped, and opens port 11100. The private key is not managed by Nix (see Security).
+- The `veyon-master` group (declared in `modules/veyon.nix`) controls access to the Veyon private key. Users `admin` and `docente` are members (configured in `modules/users.nix`).
 
 ## Nix Code Style
 
@@ -166,6 +173,7 @@ set -euo pipefail
 ## Security
 
 - **Never commit** `secret-key` or `id_ed25519` (both in `.gitignore`)
+- **Never commit** `veyon-private-key.pem` (in `.gitignore`); deploy manually to `/etc/veyon/keys/private/teacher/key` with mode `0640` and group `veyon-master`
 - Passwords in `users.nix` are hashed (SHA-512 crypt); never store plaintext
 - SSH password auth is disabled; key-based only
 - `users.mutableUsers = false` enforces declarative user management

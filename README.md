@@ -131,3 +131,28 @@ To manually rebuild a single PC from the latest GitHub config:
 sudo nixos-rebuild switch --flake github:giovantenne/nixos-lab#pc31 --no-write-lock-file --refresh
 ```
 Replace `pc31` with the appropriate hostname (e.g., `pc01`, `pc15`).
+
+## 8. Veyon (classroom management)
+Veyon is packaged locally (not available in nixpkgs) and deployed on all PCs. The `veyon-service` systemd unit runs on every machine, accepting connections on port **11100**.
+
+Authentication uses RSA key-file mode:
+- **Public key** (`veyon-public-key.pem`): committed in the repo, deployed to `/etc/veyon/keys/public/teacher/key` on all PCs.
+- **Private key** (`veyon-private-key.pem`): in `.gitignore`, must be placed manually on machines where Veyon Master will be used.
+
+### Generating keys
+Keys are generated once with openssl:
+```sh
+openssl genrsa -out veyon-private-key.pem 4096
+openssl rsa -in veyon-private-key.pem -pubout -out veyon-public-key.pem
+```
+
+### Distributing the private key
+Copy the private key to the machines where admin or docente need Veyon Master:
+```sh
+sudo install -d -m 0750 -g veyon-master /etc/veyon/keys/private/teacher
+sudo install -m 0640 -g veyon-master veyon-private-key.pem /etc/veyon/keys/private/teacher/key
+```
+Only users in the `veyon-master` group (`admin`, `docente`) can read the private key and use Veyon Master.
+
+### Configuration
+A base configuration with all 30 lab PCs pre-mapped is deployed to `/etc/xdg/Veyon Solutions/Veyon.conf`. Admin or docente can customize the layout via `veyon-configurator`.

@@ -22,6 +22,12 @@
       pcNumbers = builtins.genList (n: n + 1) 31;
       clientNumbers = builtins.genList (n: n + 1) 30;
       padNumber = n: if n < 10 then "0${toString n}" else toString n;
+
+      # Overlay: packages not available in nixpkgs
+      labOverlay = final: prev: {
+        veyon = final.callPackage ./pkgs/veyon.nix {};
+      };
+
       labSettings = {
         inherit masterIp;
         inherit ifaceName;
@@ -43,6 +49,7 @@
               hostName = name;
             };
             modules = [
+              { nixpkgs.overlays = [ labOverlay ]; }
               disko.nixosModules.disko
               ./disko-bios.nix
               ./modules/hardware.nix
@@ -52,6 +59,7 @@
               ./modules/cache.nix
               ./modules/filesystems.nix
               ./modules/home-reset.nix
+              ./modules/veyon.nix
             ];
           };
         };
@@ -70,6 +78,7 @@
               hostName = name;
             };
             imports = [
+              { nixpkgs.overlays = [ labOverlay ]; }
               disko.nixosModules.disko
               ./disko-bios.nix
               ./modules/hardware.nix
@@ -79,6 +88,7 @@
               ./modules/cache.nix
               ./modules/filesystems.nix
               ./modules/home-reset.nix
+              ./modules/veyon.nix
             ];
             deployment = {
               targetHost = address;
@@ -111,7 +121,10 @@
 
       colmena = {
         meta = {
-          nixpkgs = import nixpkgs { inherit system; };
+          nixpkgs = import nixpkgs {
+            inherit system;
+            overlays = [ labOverlay ];
+          };
           specialArgs = { inherit labSettings; };
         };
         defaults = {
@@ -128,6 +141,7 @@
             hostName = "pc31";
           };
           imports = [
+            { nixpkgs.overlays = [ labOverlay ]; }
             disko.nixosModules.disko
             ./disko-bios.nix
             ./modules/hardware.nix
@@ -137,6 +151,7 @@
             ./modules/cache.nix
             ./modules/filesystems.nix
             ./modules/home-reset.nix
+            ./modules/veyon.nix
           ];
           deployment = {
             targetHost = "localhost";
