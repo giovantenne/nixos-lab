@@ -18,6 +18,7 @@
 , xorg
 , libfakekey
 , hicolor-icon-theme
+, patchelf
 }:
 
 stdenv.mkDerivation rec {
@@ -37,6 +38,7 @@ stdenv.mkDerivation rec {
     pkg-config
     qt6.wrapQtAppsHook
     qt6.qttools
+    patchelf
   ];
 
   buildInputs = [
@@ -73,9 +75,50 @@ stdenv.mkDerivation rec {
     "-DWITH_UNITY_BUILD=OFF"
     "-DSYSTEMD_SERVICE_INSTALL_DIR=${placeholder "out"}/lib/systemd/system"
     "-DCMAKE_INSTALL_PREFIX=${placeholder "out"}"
+    "-DCMAKE_INSTALL_LIBDIR=lib"
+    "-DCMAKE_INSTALL_RPATH=$ORIGIN/../lib/veyon"
+    "-DCMAKE_BUILD_RPATH=$ORIGIN/../lib/veyon"
     # Skip git-based version info (build from tarball, no .git directory)
     "-DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations"
   ];
+
+  env.NIX_CFLAGS_COMPILE = "-Wno-error=maybe-uninitialized";
+
+  qtWrapperArgs = [
+    "--prefix"
+    "LD_LIBRARY_PATH"
+    ":"
+    "${placeholder "out"}/lib/veyon"
+  ];
+
+  postPatch = ''
+    substituteInPlace plugins/filetransfer/FileCollection.h \
+      --replace-fail '#include <QFile>' '#include <QFile>
+#include <QUuid>'
+    substituteInPlace plugins/filetransfer/FileTransferPlugin.cpp \
+      --replace-fail '#include <QCoreApplication>' '#include <QCoreApplication>
+#include <QGuiApplication>' \
+      --replace-fail 'qApp->setQuitOnLastWindowClosed(false);' 'qGuiApp->setQuitOnLastWindowClosed(false);'
+    substituteInPlace plugins/filetransfer/FileCollectDialog.cpp \
+      --replace-fail '#include <QDesktopServices>' '#include <QDesktopServices>
+#include <QDateTime>
+#include <QDir>
+#include <QMessageBox>'
+    substituteInPlace plugins/platform/linux/auth-helper/CMakeLists.txt \
+      --replace-fail 'OWNER_READ OWNER_WRITE OWNER_EXECUTE SETUID GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE' 'OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE'
+  '';
+
+  postFixup = ''
+    for binary in "$out"/bin/.veyon-*-wrapped; do
+      existing_rpath="$(patchelf --print-rpath "$binary")"
+      patchelf --set-rpath "$existing_rpath:$out/lib/veyon" "$binary"
+    done
+
+    for plugin in "$out"/lib/veyon/*.so; do
+      existing_rpath="$(patchelf --print-rpath "$plugin")"
+      patchelf --set-rpath "$existing_rpath:$out/lib/veyon" "$plugin"
+    done
+  '';
 
   # Veyon's CMake tries to run git commands for version info; patch them out
   preConfigure = ''
