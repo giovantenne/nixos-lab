@@ -6,6 +6,7 @@
 , cmake
 , pkg-config
 , qt6
+, qt6Packages
 , openssl
 , pam
 , lzo
@@ -42,6 +43,7 @@ stdenv.mkDerivation rec {
     qt6.qtbase
     qt6.qt5compat
     qt6.qtdeclarative
+    qt6Packages.qca
     openssl
     pam
     lzo
