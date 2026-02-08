@@ -47,9 +47,9 @@ sudo nixos-rebuild switch --flake .#pc31 --no-write-lock-file
 
 Build the netboot artifacts:
 ```sh
-nix build .#nixosConfigurations.netboot.config.system.build.kernel --out-link result-kernel
-nix build .#nixosConfigurations.netboot.config.system.build.netbootRamdisk --out-link result-initrd
-nix build .#nixosConfigurations.netboot.config.system.build.netbootIpxeScript --out-link result-ipxe
+nix build .#nixosConfigurations.netboot.config.system.build.kernel --out-link result-kernel --rebuild
+nix build .#nixosConfigurations.netboot.config.system.build.netbootRamdisk --out-link result-initrd --rebuild
+nix build .#nixosConfigurations.netboot.config.system.build.netbootIpxeScript --out-link result-ipxe --rebuild
 ```
 
 Pre-build all client closures so installs work offline via the local cache:
