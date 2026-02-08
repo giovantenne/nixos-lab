@@ -119,10 +119,10 @@ The master (`pc31`) pushes updates to all lab PCs via SSH:
 ./scripts/run-harmonia.sh
 
 # Deploy to all lab PCs
-colmena apply --on @lab
+nix run nixpkgs#colmena -- apply --impure --on @lab
 
 # Deploy to a single PC
-colmena apply --on pc05
+nix run nixpkgs#colmena -- apply --impure --on pc05
 ```
 
 ## 7. Manual rebuild

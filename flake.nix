@@ -72,7 +72,7 @@
         {
           inherit name;
           value = {
-            specialArgs = {
+            _module.args = {
               inherit labSettings;
               inherit hostIp;
               hostName = name;
@@ -135,7 +135,7 @@
         };
         # pc31 (master) deploys to itself locally
         pc31 = {
-          specialArgs = {
+          _module.args = {
             inherit labSettings;
             hostIp = "10.22.9.31";
             hostName = "pc31";
