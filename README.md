@@ -34,7 +34,7 @@ chmod 600 ~/.ssh/id_ed25519
 ## 2. Prepare the controller (pc99)
 All commands below run from `~/nixos-config` on `pc99`.
 
-Update `networkBase`, `pcCount`, `masterHostName`, and `ifaceName` at the top of `flake.nix`:
+Update `networkBase`, `pcCount`, `masterHostNumber`, and `ifaceName` at the top of `flake.nix`:
 ```sh
 vim flake.nix
 ```
@@ -59,8 +59,9 @@ nix build .#nixosConfigurations.pc{01..30}.config.system.build.toplevel
 ## 3. Network install (PXE/Netboot)
 Temporarily remove the static IP so pixiecore sees only the DHCP address (it returns after a reboot):
 ```sh
-iface=$(ip -4 addr | awk '/10.22.9.99/{print $NF; exit}')
-sudo ip addr del 10.22.9.99/24 dev "$iface"
+STATIC_IP=$(awk -F'"' '/networkBase =/ { print $2; exit }' flake.nix).$(awk '/masterHostNumber =/ { gsub(/;/, "", $3); print $3; exit }' flake.nix)
+IFACE=$(awk -F'"' '/ifaceName =/ { print $2; exit }' flake.nix)
+sudo ip addr del "${STATIC_IP}/24" dev "${IFACE}"
 ```
 
 Start the local services in two separate terminals:
@@ -84,8 +85,9 @@ Where `XX` is the PC number (e.g., `./setup.sh 5` for `pc05`).
 
 When all clients are installed, restore the static IP on pc99 (or just reboot it):
 ```sh
-iface=$(ip -4 addr | awk '/10.22.9.99/{print $NF; exit}')
-sudo ip addr add 10.22.9.99/24 dev "$iface"
+STATIC_IP=$(awk -F'"' '/networkBase =/ { print $2; exit }' flake.nix).$(awk '/masterHostNumber =/ { gsub(/;/, "", $3); print $3; exit }' flake.nix)
+IFACE=$(awk -F'"' '/ifaceName =/ { print $2; exit }' flake.nix)
+sudo ip addr add "${STATIC_IP}/24" dev "${IFACE}"
 ```
 
 ## 4. Partitioning and Boot (Disko)

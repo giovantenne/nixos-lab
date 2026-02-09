@@ -12,7 +12,7 @@
   outputs = { self, nixpkgs, disko }:
     let
       # ====== EDIT THESE ======
-      # Controller host settings
+      # Static IP network base (each PC gets networkBase.N)
       networkBase = "10.22.9";
       pcCount = 30;
       masterHostNumber = 99;
@@ -102,7 +102,7 @@
           inherit system;
           specialArgs = {
             inherit labSettings;
-            hostIp = masterIp;
+            hostIp = "${networkBase}.${toString masterHostNumber}";
             hostName = masterHostName;
           };
           modules = hostModules;
@@ -145,7 +145,7 @@
         ${masterHostName} = {
           _module.args = {
             inherit labSettings;
-            hostIp = masterIp;
+            hostIp = "${networkBase}.${toString masterHostNumber}";
             hostName = masterHostName;
           };
           imports = hostModules;

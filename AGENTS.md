@@ -70,7 +70,7 @@ To validate changes, build the affected host configuration (`nix build`).
 ## Architecture Notes
 
 - Hosts pc01-pc30 are generated programmatically via `builtins.genList` + `mkHost`/`mkColmenaHost` in `flake.nix`, with pc99 defined separately as the controller.
-- Hostname + static IP are centralized in `flake.nix` and applied in `modules/networking.nix`.
+- Hostname + static IP are centralized in `flake.nix` (derived from `networkBase` + host number) and applied in `modules/networking.nix`. Each PC gets both a DHCP address and a static address on the same interface.
 - Custom settings flow from `flake.nix` via `specialArgs` (`labSettings`, `hostName`, `hostIp`) to modules that need them.
 - No custom NixOS options are declared (`options = { ... }`). This repo only sets existing nixpkgs options.
 - VirtualBox guest additions are enabled by default via `mkDefault` in `common.nix` (harmless on bare metal).
