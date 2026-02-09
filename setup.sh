@@ -22,13 +22,15 @@ PC_ID=$(printf "%02d" "$PC_NUMBER")
 PC_NAME="pc${PC_ID}"
 
 # Extract settings from flake.nix
-MASTER_IP=$(awk -F'"' '/masterIp =/ { print $2; exit }' flake.nix)
+NETWORK_BASE=$(awk -F'"' '/networkBase =/ { print $2; exit }' flake.nix)
 CACHE_KEY=$(awk -F'"' '/cachePublicKey =/ { print $2; exit }' flake.nix)
 
-if [[ "$MASTER_IP" == "MASTER_IP" || -z "$MASTER_IP" ]]; then
-  echo "Error: masterIp not configured in flake.nix" >&2
+if [[ -z "$NETWORK_BASE" || "$NETWORK_BASE" == *"${"* ]]; then
+  echo "Error: networkBase not configured in flake.nix" >&2
   exit 1
 fi
+
+MASTER_IP="${NETWORK_BASE}.99"
 
 # Detect UEFI or BIOS
 if [ -d /sys/firmware/efi ]; then
