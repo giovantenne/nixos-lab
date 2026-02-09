@@ -1,5 +1,9 @@
-{ ... }:
+{ hostName, lib, ... }:
 
+let
+  # pc31 is the master controller: no autologin (teacher selects account)
+  isMaster = hostName == "pc31";
+in
 {
   # Passwords are managed declaratively, cannot be changed manually
   users.mutableUsers = false;
@@ -37,7 +41,7 @@
   };
 
   services.displayManager.autoLogin = {
-    enable = true;
+    enable = !isMaster;
     user = "informatica";
   };
 }

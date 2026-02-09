@@ -28,7 +28,7 @@
 
   services.xserver.enable = true;
 
-  # GNOME Desktop Environment
+  # GNOME Desktop Environment (Wayland)
   services.displayManager.gdm.enable = true;
   services.desktopManager.gnome.enable = true;
 

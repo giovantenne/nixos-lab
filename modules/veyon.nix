@@ -1,47 +1,49 @@
 # Veyon classroom management: service, keys and base configuration.
 #
-# - veyon-service runs on every PC (accepts connections from Veyon Master)
+# GNOME runs on Wayland (GNOME 49 dropped X11 session support).
+# Veyon's built-in x11vnc cannot capture a Wayland compositor, so we use
+# the "External VNC Server" plugin that delegates screen capture to
+# gnome-remote-desktop (grd).  grd uses PipeWire + the Wayland screen-cast
+# API, then exposes the framebuffer over VNC on port 5900.
+#
+# gnome-remote-desktop is patched in our overlay to allow multiple
+# concurrent VNC connections (upstream limits it to one).
+#
 # - Public key deployed to all PCs for key-file authentication
 # - Private key must be placed manually where needed (not managed by Nix)
-# - Base config with all 30 lab PCs pre-configured
+# - Classroom/PC layout is configured via Veyon Configurator or veyon-cli
 { pkgs, ... }:
 
 let
-  # Veyon authentication key paths on the deployed system
-  publicKeyDir = "/etc/veyon/keys/public/teacher";
-  privateKeyDir = "/etc/veyon/keys/private/teacher";
+  # Veyon authentication key base directories.
+  # Veyon resolves keys as: BaseDir/<role>/key
+  # e.g. /etc/veyon/keys/public  +  teacher/key
+  publicKeyBaseDir = "/etc/veyon/keys/public";
+  privateKeyBaseDir = "/etc/veyon/keys/private";
 
-  # Generate the NetworkObjects JSON array with all 30 lab PCs
-  pcList = builtins.genList (n:
-    let
-      num = n + 1;
-      padded = if num < 10 then "0${toString num}" else toString num;
-    in
-    {
-      Type = 1;
-      Name = "pc${padded}";
-      HostAddress = "10.22.9.${toString num}";
-      MacAddress = "";
-      Uid = "{pc${padded}-0000-0000-0000-000000000000}";
-    }
-  ) 30;
+  # VNC password used between veyon-service and gnome-remote-desktop.
+  # Both sides must agree on this value.  Since this is LAN-only
+  # and already protected by Veyon's RSA key authentication, a simple
+  # password is sufficient.
+  vncPassword = "veyon";
 
-  # Build the room container (a location object that holds all PCs)
-  roomObject = {
-    Type = 2;
-    Name = "Laboratorio";
-    Uid = "{lab-room-0000-0000-0000-000000000000}";
-    NetworkObjects = pcList;
-  };
+  # The password encrypted with Veyon's hardcoded RSA-OAEP key.
+  # Generated with:
+  #   echo -n "veyon" | openssl pkeyutl -encrypt -pubin \
+  #     -inkey <(openssl rsa -in /tmp/veyon-hardcoded-key.pem -pubout) \
+  #     -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha1 | xxd -p | tr -d '\n'
+  # The hardcoded key is embedded in libveyon-core.so.
+  vncPasswordEncrypted = "1e44d88e4161df4d14706c39da3b14b1dba0df9ca8a6a6463663e5902bfa40a4fadd19072e5c5efd48c860e0acccffff05a684fee37aee1cedf07d90fd865cbc5ead5d44daba27260e91571e5306c2afcaab4741a781a5a030966bdb05afa1e2c1643e3b55c3b7c9024ee8ef945010879a05b252fba12100e1bb6c045e2336b6fbd9dd74cbc786a735b82eeff0b890302ed1e7117521061816b62f716de2d854c112dde6b09aa419a6c975d722c65ce6a1c988f52a7ba56c720c55fa1a6aa727bdca29dacf5196cbc7b9b3aae54cd6be0fbedb31261e44887f0cdcb22aac78c8b5c3a5e6735a3a083a535e15b12f4133131caec58ad068531f765bd01a131fe2f77c136e39d1348e551e273f85c9a04d795ce309de36b081b6b7999319360dc54e24ad48672527660d32de06ec46b2d3bb86654ea48845688b60da54644eb246b6730e75f9d6fe22f936bed036fedede388619cce640c37c15099c1330f112114cc2f21c7abb5db1e4b2229053706420ccdab2112e53f8c5056ee3d8e398c04df369429b9f1abad23c993b35f33e7894822dfc88a0ca531336fc47d4f4d48fc2c063a0e65afa97825f13485027cfa02c66e47daa2c407de5f1c1bc531b45705d17fb8d849cd47e9a24aa87938ac1fcf4e9bb20b351ae7df2440920c6a6f2fe8104759c706cd8ad19456610c515ac80dfb85cfe0517fbaf8ce1fbf300f96a7569";
 
   # Veyon configuration (deployed as /etc/xdg/Veyon Solutions/Veyon.conf)
+  # Uses the External VNC Server plugin pointing to grd on port 5900.
   veyonConf = ''
     [Authentication]
     Method=1
 
     [AuthenticationKeys]
-    PublicKeyBaseDir=${publicKeyDir}
-    PrivateKeyBaseDir=${privateKeyDir}
+    PublicKeyBaseDir=${publicKeyBaseDir}
+    PrivateKeyBaseDir=${privateKeyBaseDir}
 
     [Network]
     PrimaryServicePort=11100
@@ -51,10 +53,11 @@ let
     Arguments=
 
     [VncServer]
-    Plugin=builtin
+    Plugin={67dfc1c1-8f37-4539-a298-16e74e34fd8b}
 
-    [BuiltinDirectory]
-    NetworkObjects=${builtins.toJSON [ roomObject ]}
+    [ExternalVncServer]
+    ServerPort=5900
+    Password=${vncPasswordEncrypted}
   '';
 in
 {
@@ -73,11 +76,13 @@ in
     mode = "0644";
   };
 
-  # Veyon service: manages VNC server instances per user session
-  systemd.services.veyon = {
+  # Veyon service: runs per user session.
+  # On Wayland, veyon-service connects to grd's VNC (port 5900) rather
+  # than capturing the screen directly.
+  systemd.user.services.veyon-server = {
     description = "Veyon Service";
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network.target" ];
+    wantedBy = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" "gnome-remote-desktop.service" ];
     serviceConfig = {
       ExecStart = "${pkgs.veyon}/bin/veyon-service";
       Restart = "on-failure";
@@ -86,9 +91,29 @@ in
     path = [ pkgs.veyon ];
   };
 
+  # gnome-remote-desktop VNC configuration via dconf.
+  # Enable VNC backend, set password authentication, mirror the primary screen.
+  services.desktopManager.gnome.extraGSettingsOverrides = ''
+    [org.gnome.desktop.remote-desktop.vnc]
+    enable=true
+    view-only=true
+    auth-method='password'
+    screen-share-mode='mirror-primary'
+  '';
+
+  # gnome-remote-desktop user service: set the VNC password via environment
+  # variable (GNOME Keyring is disabled in common.nix).
+  systemd.user.services.gnome-remote-desktop = {
+    serviceConfig.Environment = [
+      "GNOME_REMOTE_DESKTOP_TEST_VNC_PASSWORD=${vncPassword}"
+    ];
+  };
+
   # Group for Veyon Master access (private key ownership)
   users.groups.veyon-master = {};
 
-  # Open the Veyon port (VNC protocol)
-  networking.firewall.allowedTCPPorts = [ 11100 ];
+  # Open the Veyon and VNC ports.
+  # The firewall is disabled in common.nix but we declare the ports
+  # explicitly for documentation / defense-in-depth.
+  networking.firewall.allowedTCPPorts = [ 11100 5900 ];
 }
