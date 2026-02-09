@@ -12,15 +12,18 @@
   outputs = { self, nixpkgs, disko }:
     let
       # ====== EDIT THESE ======
-      # DHCP IP of pc31 (master controller)
-      masterIp = "192.168.0.83";
+      # Controller host settings
+      networkBase = "10.22.9";
+      pcCount = 30;
+      masterHostName = "pc99";
+      masterIp = "${networkBase}.99";
       # Shared interface name on lab PCs
       ifaceName = "enp0s3";
       # =======================
 
       system = "x86_64-linux";
-      pcNumbers = builtins.genList (n: n + 1) 31;
-      clientNumbers = builtins.genList (n: n + 1) 30;
+      pcNumbers = builtins.genList (n: n + 1) pcCount;
+      clientNumbers = pcNumbers;
       padNumber = n: if n < 10 then "0${toString n}" else toString n;
 
       # Overlay: packages not available in nixpkgs or needing patches
@@ -30,8 +33,25 @@
         gnome-remote-desktop = import ./pkgs/gnome-remote-desktop.nix { inherit prev; };
       };
 
+      hostModules = [
+        { nixpkgs.overlays = [ labOverlay ]; }
+        disko.nixosModules.disko
+        ./disko-bios.nix
+        ./modules/hardware.nix
+        ./modules/common.nix
+        ./modules/users.nix
+        ./modules/networking.nix
+        ./modules/cache.nix
+        ./modules/filesystems.nix
+        ./modules/home-reset.nix
+        ./modules/veyon.nix
+      ];
+
       labSettings = {
         inherit masterIp;
+        inherit masterHostName;
+        inherit networkBase;
+        inherit pcCount;
         inherit ifaceName;
         cachePublicKey = "lab-cache-key:jJsA9nDLNlyzhBOj5rfSKcEL2IwNspxrbNCyqmvdUvI=";
         cachePort = 5000;
@@ -39,7 +59,7 @@
       mkHost = n:
         let
           name = "pc${padNumber n}";
-          hostIp = "10.22.9.${toString n}";
+          hostIp = "${networkBase}.${toString n}";
         in
         {
           inherit name;
@@ -50,25 +70,13 @@
               inherit hostIp;
               hostName = name;
             };
-            modules = [
-              { nixpkgs.overlays = [ labOverlay ]; }
-              disko.nixosModules.disko
-              ./disko-bios.nix
-              ./modules/hardware.nix
-              ./modules/common.nix
-              ./modules/users.nix
-              ./modules/networking.nix
-              ./modules/cache.nix
-              ./modules/filesystems.nix
-              ./modules/home-reset.nix
-              ./modules/veyon.nix
-            ];
+            modules = hostModules;
           };
         };
       mkColmenaHost = n:
         let
           name = "pc${padNumber n}";
-          hostIp = "10.22.9.${toString n}";
+          hostIp = "${networkBase}.${toString n}";
           address = hostIp;
         in
         {
@@ -79,19 +87,7 @@
               inherit hostIp;
               hostName = name;
             };
-            imports = [
-              { nixpkgs.overlays = [ labOverlay ]; }
-              disko.nixosModules.disko
-              ./disko-bios.nix
-              ./modules/hardware.nix
-              ./modules/common.nix
-              ./modules/users.nix
-              ./modules/networking.nix
-              ./modules/cache.nix
-              ./modules/filesystems.nix
-              ./modules/home-reset.nix
-              ./modules/veyon.nix
-            ];
+            imports = hostModules;
             deployment = {
               targetHost = address;
               tags = [ "lab" ];
@@ -101,6 +97,15 @@
     in
     {
       nixosConfigurations = builtins.listToAttrs (map mkHost pcNumbers) // {
+        ${masterHostName} = nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = {
+            inherit labSettings;
+            hostIp = masterIp;
+            hostName = masterHostName;
+          };
+          modules = hostModules;
+        };
         netboot = nixpkgs.lib.nixosSystem {
           inherit system;
           specialArgs = { inherit labSettings; };
@@ -135,26 +140,14 @@
             buildOnTarget = false;
           };
         };
-        # pc31 (master) deploys to itself locally
-        pc31 = {
+        # pc99 (master) deploys to itself locally
+        ${masterHostName} = {
           _module.args = {
             inherit labSettings;
-            hostIp = "10.22.9.31";
-            hostName = "pc31";
+            hostIp = masterIp;
+            hostName = masterHostName;
           };
-          imports = [
-            { nixpkgs.overlays = [ labOverlay ]; }
-            disko.nixosModules.disko
-            ./disko-bios.nix
-            ./modules/hardware.nix
-            ./modules/common.nix
-            ./modules/users.nix
-            ./modules/networking.nix
-            ./modules/cache.nix
-            ./modules/filesystems.nix
-            ./modules/home-reset.nix
-            ./modules/veyon.nix
-          ];
+          imports = hostModules;
           deployment = {
             targetHost = "localhost";
             tags = [ "master" ];

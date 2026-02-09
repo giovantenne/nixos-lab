@@ -1,19 +1,19 @@
 # NixOS Lab Deployment (Zero-Internet Workflow)
-This repository manages a 31-PC NixOS lab, optimized for network installation (Netboot) with no internet access and a master PC (`pc31`) acting as the local controller.
+This repository manages a 31-PC NixOS lab, optimized for network installation (Netboot) with no internet access and a master PC (`pc99`) acting as the local controller.
 
 ## Architecture
-- Controller (`pc31`): `PXE/Netboot`, local `binary cache`, `Colmena` orchestration.
+- Controller (`pc99`): `PXE/Netboot`, local `binary cache`, `Colmena` orchestration.
 - Nodes (Lab PCs): 30 workstations with `Btrfs` filesystem.
 - Networking: installs and updates over `LAN` only, no internet on client PCs.
 
 ## 1. First setup at school (master PC)
-Bootstrap the master PC (`pc31`) from a USB installer, using temporary internet access on the first boot. **BIOS/Legacy boot is required** — disable UEFI in BIOS settings if needed.
+Bootstrap the master PC (`pc99`) from a USB installer, using temporary internet access on the first boot. **BIOS/Legacy boot is required** — disable UEFI in BIOS settings if needed.
 
 From the live USB, partition and install:
 ```sh
 curl -LO https://raw.githubusercontent.com/giovantenne/nixos-lab/master/disko-bios.nix
 sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko ./disko-bios.nix
-sudo nixos-install --flake github:giovantenne/nixos-lab#pc31 --no-write-lock-file --no-root-passwd
+sudo nixos-install --flake github:giovantenne/nixos-lab#pc99 --no-write-lock-file --no-root-passwd
 reboot
 ```
 
@@ -31,18 +31,17 @@ cp admin_id_ed25519 ~/.ssh/id_ed25519
 chmod 600 ~/.ssh/id_ed25519
 ```
 
-## 2. Prepare the controller (pc31)
-All commands below run from `~/nixos-config` on `pc31`.
+## 2. Prepare the controller (pc99)
+All commands below run from `~/nixos-config` on `pc99`.
 
-Update `masterIp` and `ifaceName` at the top of `flake.nix`:
+Update `networkBase`, `pcCount`, `masterHostName`, and `ifaceName` at the top of `flake.nix`:
 ```sh
-ip -4 addr                  # find the DHCP address
-vim flake.nix               # edit masterIp and ifaceName
+vim flake.nix
 ```
 
-Rebuild pc31 to apply the new settings:
+Rebuild pc99 to apply the new settings:
 ```sh
-sudo nixos-rebuild switch --flake .#pc31 --no-write-lock-file
+sudo nixos-rebuild switch --flake .#pc99 --no-write-lock-file
 ```
 
 Build the netboot artifacts:
@@ -60,8 +59,8 @@ nix build .#nixosConfigurations.pc{01..30}.config.system.build.toplevel
 ## 3. Network install (PXE/Netboot)
 Temporarily remove the static IP so pixiecore sees only the DHCP address (it returns after a reboot):
 ```sh
-iface=$(ip -4 addr | awk '/10.22.9.31/{print $NF; exit}')
-sudo ip addr del 10.22.9.31/24 dev "$iface"
+iface=$(ip -4 addr | awk '/10.22.9.99/{print $NF; exit}')
+sudo ip addr del 10.22.9.99/24 dev "$iface"
 ```
 
 Start the local services in two separate terminals:
@@ -83,10 +82,10 @@ cd /installer/repo
 ```
 Where `XX` is the PC number (e.g., `./setup.sh 5` for `pc05`).
 
-When all clients are installed, restore the static IP on pc31 (or just reboot it):
+When all clients are installed, restore the static IP on pc99 (or just reboot it):
 ```sh
-iface=$(ip -4 addr | awk '/10.22.9.31/{print $NF; exit}')
-sudo ip addr add 10.22.9.31/24 dev "$iface"
+iface=$(ip -4 addr | awk '/10.22.9.99/{print $NF; exit}')
+sudo ip addr add 10.22.9.99/24 dev "$iface"
 ```
 
 ## 4. Partitioning and Boot (Disko)
@@ -112,7 +111,7 @@ sudo cp /var/lib/home-snapshots/snapshot-1/file.txt /home/informatica/
 ```
 
 ## 6. Post-install management (Colmena)
-The master (`pc31`) pushes updates to all lab PCs via SSH:
+The master (`pc99`) pushes updates to all lab PCs via SSH:
 
 ```sh
 # Start the binary cache (required for client builds)
@@ -128,9 +127,9 @@ nix run nixpkgs#colmena -- apply --impure --on pc05
 ## 7. Manual rebuild
 To manually rebuild a single PC from the latest GitHub config:
 ```sh
-sudo nixos-rebuild switch --flake github:giovantenne/nixos-lab#pc31 --no-write-lock-file --refresh
+sudo nixos-rebuild switch --flake github:giovantenne/nixos-lab#pc99 --no-write-lock-file --refresh
 ```
-Replace `pc31` with the appropriate hostname (e.g., `pc01`, `pc15`).
+Replace `pc99` with the appropriate hostname (e.g., `pc01`, `pc15`).
 
 ## 8. Veyon (classroom management)
 Veyon is packaged locally (not available in nixpkgs) and deployed on all PCs. The `veyon-service` systemd unit runs on every machine, accepting connections on port **11100**.

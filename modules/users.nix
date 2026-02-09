@@ -1,8 +1,8 @@
-{ hostName, lib, ... }:
+{ hostName, labSettings, ... }:
 
 let
-  # pc31 is the master controller: no autologin (teacher selects account)
-  isMaster = hostName == "pc31";
+  # Master controller: no autologin (teacher selects account)
+  isMaster = hostName == labSettings.masterHostName;
 in
 {
   # Passwords are managed declaratively, cannot be changed manually

@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Only run for lab users
 case "${USER:-}" in
-  informatica) ;;
+  informatica|admin|docente) ;;
   *) exit 0 ;;
 esac
 
@@ -12,8 +12,30 @@ esac
 sleep 2
 
 # Dock and shell settings
-gsettings set org.gnome.shell favorite-apps \
-  "['com.mitchellh.ghostty.desktop', 'chromium-browser.desktop', 'code.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.TextEditor.desktop']"
+if [ "${USER:-}" = "informatica" ]; then
+  gsettings set org.gnome.shell favorite-apps \
+    "['com.mitchellh.ghostty.desktop', 'chromium-browser.desktop', 'code.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.TextEditor.desktop']"
+else
+  current_favorites=$(gsettings get org.gnome.shell favorite-apps)
+  updated_favorites=$(python3 - "$current_favorites" << 'PY'
+import ast
+import sys
+
+raw = sys.argv[1].strip()
+if raw.startswith("@as "):
+    raw = raw[4:]
+
+favorites = ast.literal_eval(raw)
+if "io.veyon.desktop" not in favorites:
+    if "code.desktop" in favorites:
+        favorites.insert(favorites.index("code.desktop") + 1, "io.veyon.desktop")
+    else:
+        favorites.append("io.veyon.desktop")
+print(repr(favorites))
+PY
+  )
+  gsettings set org.gnome.shell favorite-apps "$updated_favorites"
+fi
 
 gsettings set org.gnome.shell.extensions.dash-to-dock show-trash false
 

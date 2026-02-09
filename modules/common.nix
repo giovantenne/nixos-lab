@@ -282,22 +282,18 @@
     ripgrep
     try
     xdg-user-dirs
+    (makeDesktopItem {
+      name = "io.veyon";
+      desktopName = "Veyon Master";
+      exec = "${pkgs.veyon}/bin/veyon-master";
+      icon = "veyon-master";
+      comment = "Monitor and control remote computers";
+      categories = [ "Qt" "Education" "Network" "RemoteAccess" ];
+    })
     gnomeExtensions.desktop-icons-ng-ding
     gnomeExtensions.dash-to-dock
     yaru-theme
   ];
-
-  environment.etc."xdg/applications/io.veyon.desktop".text = ''
-    [Desktop Entry]
-    Version=1.0
-    Type=Application
-    Exec=${pkgs.veyon}/bin/veyon-master
-    Icon=veyon-master
-    Terminal=false
-    Name=Veyon Master
-    Comment=Monitor and control remote computers
-    Categories=Qt;Education;Network;RemoteAccess;
-  '';
 
   systemd.user.services.lab-gnome-setup = {
     description = "Lab GNOME favorites and welcome setup";

@@ -1,13 +1,13 @@
 # AGENTS.md
 
 This repository manages a 31-PC NixOS school computer lab using Nix Flakes,
-Disko, and Colmena. The master controller (`pc31`, IP `10.22.9.31`) deploys to
+Disko, and Colmena. The master controller (`pc99`, IP `10.22.9.99`) deploys to
 30 student workstations over a LAN-only network (no internet on clients).
 
 ## Project Structure
 
 ```
-flake.nix                  # Entry point: generates pc01-pc31 configs + netboot + Colmena
+flake.nix                  # Entry point: generates pc01-pc30 + pc99 configs + netboot + Colmena
 flake.lock                 # Pinned inputs (nixpkgs nixos-25.11, disko)
 disko-bios.nix             # Declarative disk partitioning (BIOS boot)
 setup.sh                   # Installer script for PXE-booted client PCs
@@ -20,7 +20,7 @@ modules/
   hardware.nix             # Generic hardware detection (replaces per-host hardware-configuration.nix)
   networking.nix           # Hostname + static IP with shared iface name
   users.nix                # User accounts (admin + docente + informatica student, veyon-master group)
-  cache.nix                # Binary cache client (points to pc31's Harmonia)
+  cache.nix                # Binary cache client (points to pc99's Harmonia)
   filesystems.nix          # Btrfs subvolume mount declarations
   home-reset.nix           # Student home directory templating + boot-time reset
   veyon.nix                # Veyon service, public key, firewall, base config
@@ -49,8 +49,8 @@ nix build .#nixosConfigurations.pc01.config.system.build.toplevel
 # Build all client closures
 nix build .#nixosConfigurations.pc{01..30}.config.system.build.toplevel
 
-# Rebuild and activate on the local machine (pc31)
-sudo nixos-rebuild switch --flake .#pc31 --no-write-lock-file
+# Rebuild and activate on the local machine (pc99)
+sudo nixos-rebuild switch --flake .#pc99 --no-write-lock-file
 
 # Deploy to all lab PCs via Colmena
 colmena apply --on @lab
@@ -69,7 +69,7 @@ To validate changes, build the affected host configuration (`nix build`).
 
 ## Architecture Notes
 
-- Hosts pc01-pc31 are generated programmatically via `builtins.genList` + `mkHost`/`mkColmenaHost` in `flake.nix`.
+- Hosts pc01-pc30 are generated programmatically via `builtins.genList` + `mkHost`/`mkColmenaHost` in `flake.nix`, with pc99 defined separately as the controller.
 - Hostname + static IP are centralized in `flake.nix` and applied in `modules/networking.nix`.
 - Custom settings flow from `flake.nix` via `specialArgs` (`labSettings`, `hostName`, `hostIp`) to modules that need them.
 - No custom NixOS options are declared (`options = { ... }`). This repo only sets existing nixpkgs options.
