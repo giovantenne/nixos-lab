@@ -15,8 +15,9 @@
       # Controller host settings
       networkBase = "10.22.9";
       pcCount = 30;
-      masterHostName = "pc99";
-      masterIp = "${networkBase}.99";
+      masterHostNumber = 99;
+      masterHostName = "pc${toString masterHostNumber}";
+      masterIp = "${networkBase}.${toString masterHostNumber}";
       # Shared interface name on lab PCs
       ifaceName = "enp0s3";
       # =======================
