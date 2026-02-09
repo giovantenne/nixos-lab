@@ -39,14 +39,22 @@ fi
 MASTER_STATIC_IP="${NETWORK_BASE}.${MASTER_HOST_NUMBER}"
 
 # During netboot install the master may only be reachable on its DHCP address.
-# Try the static IP first; fall back to the DHCP next-server (PXE boot source).
+# Try the static IP first; fall back to probing all neighbours for Harmonia.
 if curl -sf --connect-timeout 2 "http://${MASTER_STATIC_IP}:5000/nix-cache-info" > /dev/null 2>&1; then
   MASTER_IP="${MASTER_STATIC_IP}"
 else
-  # The PXE next-server is the master's DHCP address
-  MASTER_IP=$(ip route | awk '/default/ { print $3; exit }')
-  if [[ -z "$MASTER_IP" ]] || ! curl -sf --connect-timeout 2 "http://${MASTER_IP}:5000/nix-cache-info" > /dev/null 2>&1; then
-    echo "Error: cannot reach Harmonia cache on ${MASTER_STATIC_IP} or ${MASTER_IP:-<no gateway>}" >&2
+  echo "Master not reachable on ${MASTER_STATIC_IP}, scanning local network for Harmonia..."
+  LOCAL_SUBNET=$(ip -4 addr show | awk '/inet / && !/127\.0\.0/ { print $2; exit }')
+  LOCAL_BASE=$(echo "${LOCAL_SUBNET}" | cut -d'.' -f1-3)
+  FOUND_FILE=$(mktemp)
+  trap 'rm -f "${FOUND_FILE}"' EXIT
+  for i in $(seq 1 254); do
+    ( curl -sf --connect-timeout 1 "http://${LOCAL_BASE}.${i}:5000/nix-cache-info" > /dev/null 2>&1 && echo "${LOCAL_BASE}.${i}" > "${FOUND_FILE}" ) &
+  done
+  wait
+  MASTER_IP=$(cat "${FOUND_FILE}" 2>/dev/null | head -1)
+  if [[ -z "$MASTER_IP" ]]; then
+    echo "Error: cannot find Harmonia cache on ${MASTER_STATIC_IP} or ${LOCAL_BASE}.0/24" >&2
     exit 1
   fi
 fi
