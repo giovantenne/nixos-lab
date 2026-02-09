@@ -1,6 +1,6 @@
-{ labSettings, hostName, ... }:
+{ config, labSettings, ... }:
 let
-  isMaster = hostName == labSettings.masterHostName;
+  isMaster = config.networking.hostName == labSettings.masterHostName;
 in
 {
   nix.settings = {
