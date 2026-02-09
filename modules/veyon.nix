@@ -99,11 +99,22 @@ in
     view-only=true
     auth-method='password'
     screen-share-mode='mirror-primary'
+
+    [org.gnome.desktop.remote-desktop.rdp]
+    enable=false
+
+    [org.gnome.desktop.remote-desktop.rdp.headless]
+    enable=false
   '';
 
+  # Ensure the remote-desktop schemas are visible to gsettings.
+  services.desktopManager.gnome.extraGSettingsOverridePackages = [ pkgs.gnome-remote-desktop ];
+
   # gnome-remote-desktop user service: set the VNC password via environment
-  # variable (GNOME Keyring is disabled in common.nix).
+  # variable (GNOME Keyring is disabled in common.nix), and ensure it's enabled
+  # at session start.
   systemd.user.services.gnome-remote-desktop = {
+    wantedBy = [ "gnome-session.target" ];
     serviceConfig.Environment = [
       "GNOME_REMOTE_DESKTOP_TEST_VNC_PASSWORD=${vncPassword}"
     ];
