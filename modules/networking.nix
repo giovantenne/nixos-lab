@@ -1,10 +1,9 @@
-{ hostIp, hostName, labSettings, ... }:
+{ hostIp, hostName, labSettings, lib, ... }:
 {
   networking.hostName = hostName;
-  networking.networkmanager.unmanaged = [ "interface-name:${labSettings.ifaceName}" ];
   networking.interfaces = {
     ${labSettings.ifaceName} = {
-      useDHCP = true;
+      useDHCP = lib.mkDefault true;
       ipv4.addresses = [
         {
           address = hostIp;
