@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Only run for lab users
 case "${USER:-}" in
-  informatica|admin) ;;
+  informatica) ;;
   *) exit 0 ;;
 esac
 

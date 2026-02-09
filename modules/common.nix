@@ -50,7 +50,7 @@
 
     [org.gnome.shell]
     enabled-extensions=['ding@rastersoft.com', 'dash-to-dock@micxgx.gmail.com']
-    favorite-apps=['com.mitchellh.ghostty.desktop', 'chromium-browser.desktop', 'code.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.TextEditor.desktop']
+    favorite-apps=['com.mitchellh.ghostty.desktop', 'chromium-browser.desktop', 'code.desktop', 'io.veyon.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.TextEditor.desktop']
     welcome-dialog-last-shown-version='9999'
 
     [org.gnome.shell.extensions.dash-to-dock]
@@ -286,6 +286,18 @@
     gnomeExtensions.dash-to-dock
     yaru-theme
   ];
+
+  environment.etc."xdg/applications/io.veyon.desktop".text = ''
+    [Desktop Entry]
+    Version=1.0
+    Type=Application
+    Exec=${pkgs.veyon}/bin/veyon-master
+    Icon=veyon-master
+    Terminal=false
+    Name=Veyon Master
+    Comment=Monitor and control remote computers
+    Categories=Qt;Education;Network;RemoteAccess;
+  '';
 
   systemd.user.services.lab-gnome-setup = {
     description = "Lab GNOME favorites and welcome setup";
