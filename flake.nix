@@ -13,7 +13,7 @@
     let
       # ====== EDIT THESE ======
       # DHCP IP of pc31 (master controller)
-      masterIp = "MASTER_IP";
+      masterIp = "192.168.0.83";
       # Shared interface name on lab PCs
       ifaceName = "enp0s3";
       # =======================
