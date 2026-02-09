@@ -22,41 +22,12 @@ PC_ID=$(printf "%02d" "$PC_NUMBER")
 PC_NAME="pc${PC_ID}"
 
 # Extract settings from flake.nix
-NETWORK_BASE=$(awk -F'"' '/networkBase =/ { print $2; exit }' flake.nix)
-MASTER_HOST_NUMBER=$(awk '/masterHostNumber =/ { gsub(/;/, "", $3); print $3; exit }' flake.nix)
+MASTER_IP=$(awk -F'"' '/masterDhcpIp =/ { print $2; exit }' flake.nix)
 CACHE_KEY=$(awk -F'"' '/cachePublicKey =/ { print $2; exit }' flake.nix)
 
-if [[ -z "$NETWORK_BASE" ]]; then
-  echo "Error: networkBase not configured in flake.nix" >&2
+if [[ -z "$MASTER_IP" || "$MASTER_IP" == "MASTER_DHCP_IP" ]]; then
+  echo "Error: masterDhcpIp not configured in flake.nix" >&2
   exit 1
-fi
-
-if [[ -z "$MASTER_HOST_NUMBER" ]]; then
-  echo "Error: masterHostNumber not configured in flake.nix" >&2
-  exit 1
-fi
-
-MASTER_STATIC_IP="${NETWORK_BASE}.${MASTER_HOST_NUMBER}"
-
-# During netboot install the master may only be reachable on its DHCP address.
-# Try the static IP first; fall back to probing all neighbours for Harmonia.
-if curl -sf --connect-timeout 2 "http://${MASTER_STATIC_IP}:5000/nix-cache-info" > /dev/null 2>&1; then
-  MASTER_IP="${MASTER_STATIC_IP}"
-else
-  echo "Master not reachable on ${MASTER_STATIC_IP}, scanning local network for Harmonia..."
-  LOCAL_SUBNET=$(ip -4 addr show | awk '/inet / && !/127\.0\.0/ { print $2; exit }')
-  LOCAL_BASE=$(echo "${LOCAL_SUBNET}" | cut -d'.' -f1-3)
-  FOUND_FILE=$(mktemp)
-  trap 'rm -f "${FOUND_FILE}"' EXIT
-  for i in $(seq 1 254); do
-    ( curl -sf --connect-timeout 1 "http://${LOCAL_BASE}.${i}:5000/nix-cache-info" > /dev/null 2>&1 && echo "${LOCAL_BASE}.${i}" > "${FOUND_FILE}" ) &
-  done
-  wait
-  MASTER_IP=$(cat "${FOUND_FILE}" 2>/dev/null | head -1)
-  if [[ -z "$MASTER_IP" ]]; then
-    echo "Error: cannot find Harmonia cache on ${MASTER_STATIC_IP} or ${LOCAL_BASE}.0/24" >&2
-    exit 1
-  fi
 fi
 
 echo "Using binary cache at ${MASTER_IP}:5000"

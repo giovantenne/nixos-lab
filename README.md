@@ -34,9 +34,10 @@ chmod 600 ~/.ssh/id_ed25519
 ## 2. Prepare the controller (pc99)
 All commands below run from `~/nixos-config` on `pc99`.
 
-Update `networkBase`, `pcCount`, `masterHostNumber`, and `ifaceName` at the top of `flake.nix`:
+Update `masterDhcpIp`, `networkBase`, `pcCount`, `masterHostNumber`, and `ifaceName` at the top of `flake.nix`:
 ```sh
-vim flake.nix
+ip -4 addr                  # find the DHCP address
+vim flake.nix               # edit masterDhcpIp and other settings
 ```
 
 Rebuild pc99 to apply the new settings:

@@ -12,15 +12,18 @@
   outputs = { self, nixpkgs, disko }:
     let
       # ====== EDIT THESE ======
+      # DHCP IP of the master (used by clients during netboot install)
+      masterDhcpIp = "MASTER_DHCP_IP";
       # Static IP network base (each PC gets networkBase.N)
       networkBase = "10.22.9";
       pcCount = 30;
       masterHostNumber = 99;
-      masterHostName = "pc${toString masterHostNumber}";
-      masterIp = "${networkBase}.${toString masterHostNumber}";
       # Shared interface name on lab PCs
       ifaceName = "enp0s3";
       # =======================
+
+      masterHostName = "pc${toString masterHostNumber}";
+      masterIp = "${networkBase}.${toString masterHostNumber}";
 
       system = "x86_64-linux";
       pcNumbers = builtins.genList (n: n + 1) pcCount;
@@ -50,6 +53,7 @@
 
       labSettings = {
         inherit masterIp;
+        inherit masterDhcpIp;
         inherit masterHostName;
         inherit networkBase;
         inherit pcCount;
@@ -114,6 +118,8 @@
             "${nixpkgs}/nixos/modules/installer/netboot/netboot-minimal.nix"
             ./modules/cache.nix
             ({ pkgs, lib, ... }: {
+              # During netboot the master is only reachable on its DHCP address
+              nix.settings.substituters = lib.mkForce [ "http://${masterDhcpIp}:5000" ];
               networking.useDHCP = lib.mkForce true;
               services.openssh.enable = true;
               environment.systemPackages = [ disko.packages.${system}.default ];
