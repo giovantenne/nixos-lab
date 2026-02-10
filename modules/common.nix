@@ -28,11 +28,8 @@
 
   services.xserver.enable = true;
 
-  # GNOME Desktop Environment (X11)
-  # Wayland is disabled because Veyon does not support Wayland screen
-  # capture.  Its built-in x11vnc works reliably under X11.
+  # GNOME Desktop Environment (Wayland)
   services.displayManager.gdm.enable = true;
-  services.displayManager.gdm.wayland = false;
   services.desktopManager.gnome.enable = true;
 
   # Disable GNOME Keyring (no password prompts for Chromium, VSCode, etc.)
