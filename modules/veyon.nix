@@ -90,6 +90,11 @@ let
     Arguments=
     HideTrayIcon=true
 
+    [Master]
+    RemoteAccessImageQuality=0
+    ComputerMonitoringImageQuality=2
+    ComputerMonitoringUpdateInterval=1000
+
     [VncServer]
     Plugin={67dfc1c1-8f37-4539-a298-16e74e34fd8b}
 
