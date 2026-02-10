@@ -106,19 +106,6 @@ stdenv.mkDerivation rec {
 #include <QMessageBox>'
     substituteInPlace plugins/platform/linux/auth-helper/CMakeLists.txt \
       --replace-fail 'OWNER_READ OWNER_WRITE OWNER_EXECUTE SETUID GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE' 'OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE'
-
-    # Force Raw-only VNC encoding for both remote access and monitoring.
-    # The hardcoded encoding strings put ZRLE/Tight first, causing
-    # framebuffer corruption with gnome-remote-desktop on Wayland
-    # (especially without GPU acceleration).  Raw encoding eliminates
-    # incremental delta artifacts — bandwidth is not a concern on LAN.
-    substituteInPlace core/src/VncConnection.cpp \
-      --replace-fail \
-        '"zrle ultra copyrect hextile zlib corre rre raw"' \
-        '"raw"' \
-      --replace-fail \
-        '"tight zywrle zrle ultra"' \
-        '"raw"'
   '';
 
   postFixup = ''

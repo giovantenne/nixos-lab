@@ -30,11 +30,9 @@
       clientNumbers = pcNumbers;
       padNumber = n: if n < 10 then "0${toString n}" else toString n;
 
-      # Overlay: packages not available in nixpkgs or needing patches
+      # Overlay: packages not available in nixpkgs
       labOverlay = final: prev: {
         veyon = final.callPackage ./pkgs/veyon.nix {};
-        # gnome-remote-desktop with VNC enabled + multi-session patch
-        gnome-remote-desktop = import ./pkgs/gnome-remote-desktop.nix { inherit prev; };
       };
 
       hostModules = [
