@@ -107,7 +107,7 @@ The `informatica` home directory resets to a clean template on every boot:
 - **Template**: generated at activation time with git config, VS Code settings, and XDG directories
 - **Snapshots**: last 5 versions saved in `/var/lib/home-snapshots/` (accessible by `admin`, `docente`, and `root`)
 
-The `docente` user has a **Snapshot Studenti** shortcut on the desktop pointing to the snapshots directory.
+The `docente` user has a **Snapshot Studenti** bookmark in the Nautilus (Files) sidebar pointing to the snapshots directory.
 
 To recover student work from a previous session:
 ```sh

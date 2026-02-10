@@ -115,8 +115,20 @@ in
   systemd.tmpfiles.rules = [
     "d /var/lib/home-snapshots 0750 root veyon-master -"
     "d /var/lib/home-template 0755 root root -"
-    # Shortcut to snapshots on docente desktop
-    "d /home/docente/Desktop 0755 docente users -"
-    "L /home/docente/Desktop/Snapshot\\ Studenti - - - - /var/lib/home-snapshots"
   ];
+
+  # Add "Snapshot Studenti" bookmark in Nautilus sidebar for docente
+  system.activationScripts.docenteSnapshotBookmark = {
+    text = ''
+      BOOKMARK_DIR="/home/docente/.config/gtk-3.0"
+      BOOKMARK_FILE="$BOOKMARK_DIR/bookmarks"
+      ENTRY="file:///var/lib/home-snapshots Snapshot Studenti"
+      mkdir -p "$BOOKMARK_DIR"
+      if ! grep -q "home-snapshots" "$BOOKMARK_FILE" 2>/dev/null; then
+        echo "$ENTRY" >> "$BOOKMARK_FILE"
+      fi
+      chown -R docente:users "$BOOKMARK_DIR"
+    '';
+    deps = [ "users" ];
+  };
 }
