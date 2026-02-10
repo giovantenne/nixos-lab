@@ -113,7 +113,7 @@ in
 
   # Ensure directories have correct permissions
   systemd.tmpfiles.rules = [
-    "d /var/lib/home-snapshots 0700 root root -"
+    "d /var/lib/home-snapshots 0750 root veyon-master -"
     "d /var/lib/home-template 0755 root root -"
   ];
 }
