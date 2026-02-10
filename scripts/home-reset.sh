@@ -50,8 +50,13 @@ if [ -n "$(find "$HOME_DIR" -maxdepth 1 -mindepth 1 -print -quit 2>/dev/null)" ]
 
   # Create new snapshot of current home
   echo "Creating snapshot of current home..."
-  btrfs subvolume snapshot -r "$HOME_DIR" "$SNAPSHOTS_DIR/snapshot-1" 2>/dev/null || \
+  btrfs subvolume snapshot "$HOME_DIR" "$SNAPSHOTS_DIR/snapshot-1" 2>/dev/null || \
     cp -a "$HOME_DIR" "$SNAPSHOTS_DIR/snapshot-1"
+
+  # Make snapshot accessible to admin/docente (veyon-master group)
+  chgrp veyon-master "$SNAPSHOTS_DIR/snapshot-1"
+  chmod 750 "$SNAPSHOTS_DIR/snapshot-1"
+  chmod -R g+rX "$SNAPSHOTS_DIR/snapshot-1"
 fi
 
 # Clear home directory content (keep the subvolume mount)

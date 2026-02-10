@@ -105,12 +105,14 @@ Target disk: `/dev/sda` with Btrfs label `nixos` and subvolumes:
 The `informatica` home directory resets to a clean template on every boot:
 
 - **Template**: generated at activation time with git config, VS Code settings, and XDG directories
-- **Snapshots**: last 5 versions saved in `/var/lib/home-snapshots/` (root only)
+- **Snapshots**: last 5 versions saved in `/var/lib/home-snapshots/` (accessible by `admin`, `docente`, and `root`)
+
+The `docente` user has a **Snapshot Studenti** shortcut on the desktop pointing to the snapshots directory.
 
 To recover student work from a previous session:
 ```sh
-sudo ls /var/lib/home-snapshots/snapshot-1/
-sudo cp /var/lib/home-snapshots/snapshot-1/file.txt /home/informatica/
+ls /var/lib/home-snapshots/snapshot-1/
+cp /var/lib/home-snapshots/snapshot-1/file.txt /home/informatica/
 ```
 
 ## 6. Post-install management (Colmena)

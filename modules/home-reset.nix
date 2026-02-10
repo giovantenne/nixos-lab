@@ -115,5 +115,8 @@ in
   systemd.tmpfiles.rules = [
     "d /var/lib/home-snapshots 0750 root veyon-master -"
     "d /var/lib/home-template 0755 root root -"
+    # Shortcut to snapshots on docente desktop
+    "d /home/docente/Desktop 0755 docente users -"
+    "L /home/docente/Desktop/Snapshot\\ Studenti - - - - /var/lib/home-snapshots"
   ];
 }
