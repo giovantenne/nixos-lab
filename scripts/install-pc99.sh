@@ -12,6 +12,16 @@ FLAKE_REF="${FLAKE_REF:-github:giovantenne/nixos-lab}"
 DISKO_URL="${DISKO_URL:-https://raw.githubusercontent.com/giovantenne/nixos-lab/master/disko-bios.nix}"
 AVAILABLE_DISKS=()
 
+prompt_input() {
+  local PROMPT_TEXT="$1"
+  local TARGET_VAR="$2"
+  if [[ -r /dev/tty ]]; then
+    read -r -p "$PROMPT_TEXT" "$TARGET_VAR" < /dev/tty
+  else
+    read -r -p "$PROMPT_TEXT" "$TARGET_VAR"
+  fi
+}
+
 list_disks() {
   lsblk -dno PATH,SIZE,MODEL,TYPE | awk '$4=="disk" { printf "  %s  %s  %s\n", $1, $2, $3 }'
 }
@@ -67,7 +77,7 @@ elif [[ ${#AVAILABLE_DISKS[@]} -eq 1 ]]; then
 else
   echo "Available disks:"
   list_disks
-  read -r -p "Choose install disk: " CHOSEN_DISK
+  prompt_input "Choose install disk: " CHOSEN_DISK
   INSTALL_DISK=$(canonicalize_disk "$CHOSEN_DISK")
   if [[ -z "$INSTALL_DISK" ]]; then
     echo "Error: no disk selected." >&2
@@ -80,7 +90,7 @@ else
 fi
 
 echo "Selected disk: $INSTALL_DISK"
-read -r -p "This will erase all data on $INSTALL_DISK. Type YES to continue: " CONFIRMATION
+prompt_input "This will erase all data on $INSTALL_DISK. Type YES to continue: " CONFIRMATION
 if [[ "$CONFIRMATION" != "YES" ]]; then
   echo "Installation cancelled."
   exit 1
