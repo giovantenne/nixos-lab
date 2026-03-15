@@ -19,17 +19,20 @@ This project bridges that gap with a **local-first workflow**:
 
 - A single controller PC acts as the build server, binary cache, and PXE boot server
 - Client PCs are installed and updated entirely over the LAN
-- One `flake.nix` file is the single source of truth for the entire lab
-- Everything is parameterizable -- user names, passwords, network settings, locale -- so you can fork this repo and adapt it to your environment in minutes
+- One repo generates the entire lab from a normalized configuration model
+- Effective settings come from `lab-config.nix` or, if present, the GUI-owned `config/instance.json`
+- Users, passwords, network settings, locale, software presets, and controller features are parameterized so you can adapt the repo to your environment quickly
 
 ## ✨ Features
 
 - **Zero-internet client installation** -- PXE/netboot + local binary cache (Harmonia), no USB drives needed per client
-- **Single source of truth** -- one `flake.nix` generates all host configurations programmatically
+- **Programmatic host generation** -- one flake generates all controller and client configurations from normalized lab settings
 - **Multi-machine orchestration** -- deploy updates to all PCs at once with Colmena
 - **Student home directory reset** -- homes are restored to a clean template on every boot, with the last 5 sessions saved as Btrfs snapshots for recovery
 - **Classroom management** -- Veyon is pre-configured with all lab PCs mapped, ready to use
-- **Fully parameterizable** -- user names, PC count, network layout, passwords, locale, homepage, and more are all configurable from a single settings block
+- **Controller-local GUI** -- manage users, software presets, validation, builds, deploys, and logs locally from the controller
+- **Appliance packaging** -- build a controller installer ISO that seeds a fixed managed repo on first boot
+- **Fully parameterizable** -- user names, PC count, network layout, passwords, locale, homepage, extra users, and software presets are configurable
 - **Dual networking** -- DHCP for institutional network integration + static IPs for the internal lab network
 - **UEFI + Btrfs** -- modern boot with declarative disk partitioning (Disko) and snapshot support
 - **GNOME desktop** -- pre-configured with dark theme, development tools, and terminal customization
@@ -87,6 +90,10 @@ The installer uses the embedded repo from the ISO, installs the
 `controller-appliance` system, and seeds a fixed managed repo at
 `/var/lib/nixos-lab/repo` on first boot.
 
+After the first boot, the working repo is already available at
+`/var/lib/nixos-lab/repo`. In appliance mode you can open `lab-gui` directly or
+work from that repo path with Git and Nix; no extra clone is required.
+
 > **Optional: fork first.** If you want to push your `lab-config.nix` to a remote repository (for backup or future reinstalls), fork this repo on GitHub before starting. The main flow below works with a plain `git clone` of the original repo -- forking is not required.
 
 ### 1. Bootstrap the controller from USB
@@ -111,6 +118,8 @@ The bootstrap script forces `cache.nixos.org` during installation, so it does no
 > ```
 
 ### 2. Reboot and clone the repo
+
+> Skip this step if you used the appliance installer ISO above. That flow already seeds the repo into `/var/lib/nixos-lab/repo`.
 
 Reboot and log in as `admin` (default password: `nixos`).
 
@@ -168,6 +177,12 @@ consoleKeyMap = "it2";
 ```
 
 You can leave the git identity fields at their defaults for now.
+
+You can also start simple and add these later:
+
+- `extraUsers = [ ... ];` for standard users on all machines
+- `software = { ... };` for software presets, extra packages, and desktop defaults
+- `features.guiBackend = { ... };` and `features.appliance = { ... };` for controller behavior
 
 > **Note**: `masterDhcpIp` is used only during PXE/netboot client installation. The generated iPXE script, the netboot ramdisk, and the PXE helper services all point to that DHCP address, so if the DHCP lease changes before a netboot session you must update `lab-config.nix` and rebuild the netboot artifacts. Regular Colmena deploys use the controller's static lab IP instead.
 
@@ -372,9 +387,10 @@ sudo lab-gui-config restore <backup-name>
 
 | User | Role | Details |
 |---|---|---|
-| `admin` | System administrator | SSH access, sudo, Veyon Master access |
+| Admin (configurable) | System administrator | SSH access, sudo, Veyon Master access |
 | Teacher (configurable) | Instructor | Veyon Master access, persistent home, snapshot bookmark |
 | Student (configurable) | Student | Autologin on client PCs, home reset at every boot |
+| Extra users | Standard users | Declarative local users on all machines, login allowed on clients, no special privileges by default |
 | `root` | System | Password disabled, SSH key access only |
 
 ### Disk layout (Disko)
@@ -489,13 +505,18 @@ scripts/
     manage-instance-config.sh # Backup/restore/status helper for GUI-owned config
     export-source-config.nix  # Export current effective config as JSON
     validate-instance.nix     # Validate candidate GUI config through Nix
+    static/                # Frontend JavaScript and CSS assets
+    templates/             # Frontend HTML templates
   cmd-screensaver.sh       # TTE screensaver animation loop
   launch-screensaver.sh    # Fullscreen Ghostty screensaver launcher
   screensaver-monitor.sh   # GNOME idle watcher for screensaver
   create-home-template.sh  # Home directory template builder
   home-reset.sh            # Boot-time snapshot rotation + home reset
 config/
+  .gitkeep                 # Keeps the optional config directory in the repo
   instance.json            # GUI-owned config when present
+tests/
+  fixtures/                # Normalization and validation fixtures used by flake checks
 assets/
   backgrounds/             # Wallpapers (randomly selected at home reset)
   logo.txt                 # ASCII art for screensaver
@@ -509,7 +530,7 @@ Public key artifacts generated during setup live in the repo root; see step 4.
 
 - **Never commit** `secret-key`, `id_ed25519`, or `veyon-private-key.pem` (all are in `.gitignore`)
 - Commit only the public counterparts used by the Nix configuration: `public-key`, `id_ed25519.pub`, and `veyon-public-key.pem`
-- Passwords are SHA-512 hashed; never store plaintext
+- Passwords are SHA-512 hashed; never store plaintext manually. The local GUI accepts plaintext only to hash it before saving.
 - SSH password authentication is disabled; key-based only
 - `users.mutableUsers = false` enforces declarative user management
 - The Veyon private key is readable only by the `veyon-master` group
