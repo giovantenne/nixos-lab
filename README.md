@@ -64,6 +64,29 @@ This project bridges that gap with a **local-first workflow**:
 
 ## 🚀 Quick start
 
+### Appliance installer path
+
+If you already have a working Nix machine and want a branded controller
+installer artifact instead of starting from a generic live USB, build:
+
+```sh
+nix build .#packages.x86_64-linux.controller-installer
+```
+
+That produces a controller installer ISO. Boot it on the future controller and
+run:
+
+```sh
+install-lab-controller
+```
+
+The build output is a directory symlink at `./result`. The ISO file itself is
+inside `./result/iso/nixos-lab-controller-installer.iso`.
+
+The installer uses the embedded repo from the ISO, installs the
+`controller-appliance` system, and seeds a fixed managed repo at
+`/var/lib/nixos-lab/repo` on first boot.
+
 > **Optional: fork first.** If you want to push your `lab-config.nix` to a remote repository (for backup or future reinstalls), fork this repo on GitHub before starting. The main flow below works with a plain `git clone` of the original repo -- forking is not required.
 
 ### 1. Bootstrap the controller from USB
@@ -257,6 +280,42 @@ sudo ip addr add "${STATIC_IP}/24" dev "${IFACE}"
 
 ## 🔧 Maintenance
 
+### Controller-local GUI
+
+The controller now includes a local management dashboard for user, software,
+feature, validation, build, deploy, and job-log workflows.
+
+Open it from the controller itself:
+
+```sh
+lab-gui
+```
+
+Or open the default local URL directly:
+
+```sh
+xdg-open http://127.0.0.1:8088/
+```
+
+The backend is **localhost-only**. It is not exposed on the lab LAN.
+
+If `config/instance.json` exists, it becomes the GUI-owned source of truth and
+takes precedence over `lab-config.nix` for builds and deploys.
+
+In the appliance flow, the managed repo lives at `/var/lib/nixos-lab/repo` and
+the GUI-owned config lives at `/var/lib/nixos-lab/repo/config/instance.json`.
+
+Useful controller commands:
+
+```sh
+lab-gui-config status
+lab-gui-config list
+lab-gui-config backup
+sudo lab-gui-config restore instance-YYYYMMDD-HHMMSS.json
+systemctl status lab-gui-backend
+journalctl -u lab-gui-backend -e
+```
+
 ### Deploy updates (Colmena)
 
 First apply the latest configuration on the controller itself:
@@ -293,6 +352,21 @@ For client PCs, prefer Colmena from the controller. Only run `sudo nixos-rebuild
 ---
 
 ## ⚙️ Configuration reference
+
+### GUI-owned config
+
+The GUI writes `config/instance.json` when you save changes from the dashboard.
+
+- if `config/instance.json` is absent, the system still uses `lab-config.nix`
+- if `config/instance.json` is present, it overrides `lab-config.nix`
+- every GUI save keeps an automatic backup under `/var/lib/lab-gui/backups/`
+
+For manual recovery:
+
+```sh
+lab-gui-config list
+sudo lab-gui-config restore <backup-name>
+```
 
 ### User accounts
 
@@ -352,11 +426,13 @@ port **11100**.
 
 The default desktop is GNOME (Wayland) with a curated set of development tools. To customize:
 
-- **System packages**: edit the `environment.systemPackages` list in `modules/common.nix`
-- **GNOME settings**: edit the `extraGSettingsOverrides` in `modules/common.nix`
+- **Software presets and extra packages**: edit the `software` section in `lab-config.nix` or use the local GUI
+- **Software catalog IDs**: inspect `lib/software-catalog.nix`
+- **Package resolution**: inspect `modules/software/packages.nix`
+- **GNOME settings**: edit `modules/base/common.nix`
 - **Screensaver**: replace `assets/logo.txt` with your own ASCII art
 - **Wallpapers**: replace images in `assets/backgrounds/`
-- **VS Code extensions**: edit the `vscodeExtensions` list in `modules/home-reset.nix`
+- **VS Code presets**: edit `software.vscode.*` in config and the preset catalog in `lib/software-catalog.nix`
 
 ---
 
@@ -370,29 +446,56 @@ lab-config.nix             # Lab configuration (edit for your environment)
 disko-uefi.nix             # NixOS wrapper for the shared Disko layout
 lib/
   disko-layout.nix         # Shared Disko layout function (device + student user)
+  normalize-config.nix     # Compatibility + normalization layer
+  software-catalog.nix     # Curated software and VS Code preset catalog
+  source-config.nix        # Exportable GUI/source config shape
 setup.sh                   # Client PC installer (runs on PXE-booted machines)
 pkgs/
   veyon.nix                # Veyon package derivation
   gnome-remote-desktop.nix # gnome-remote-desktop overlay (VNC + multi-session)
 modules/
-  common.nix               # GNOME desktop, packages, shells, locale, services
+  base/
+    common.nix             # Shared GNOME desktop, shells, locale, services
+  features/
+    cache.nix              # Binary cache client configuration
+    appliance-layout.nix   # Fixed repo seeding for controller appliance mode
+    gui-backend.nix        # Controller-local GUI backend service + launchers
+    home-reset.nix         # Student home templating + boot-time reset
+    screensaver.nix        # Optional controller/client screensaver feature
+    veyon.nix              # Veyon service, keys, and classroom config
+  profiles/
+    client.nix             # Client-only policy
+    controller.nix         # Controller-only policy
+  software/
+    packages.nix           # Software preset resolution
+  users/
+    core-users.nix         # Admin/teacher/student accounts
+    extra-users.nix        # Declarative extra users
+    default.nix            # Users module entry point
+  common.nix               # Compatibility wrapper
   hardware.nix             # Generic hardware detection
   networking.nix           # Hostname + static IP per host
-  users.nix                # User accounts and autologin
-  cache.nix                # Binary cache client configuration
-  filesystems.nix          # Btrfs support
-  home-reset.nix           # Student home templating + boot-time reset
-  veyon.nix                # Veyon service, keys, and classroom config
+  cache.nix                # Compatibility wrapper
+  home-reset.nix           # Compatibility wrapper
+  veyon.nix                # Compatibility wrapper
 scripts/
   install-controller.sh    # Controller bootstrap from live USB
+  appliance-seed-repo.sh   # Seeds the fixed controller repo for appliance mode
   run-harmonia.sh          # Binary cache server
   run-pxe-proxy.sh         # ProxyDHCP + TFTP + HTTP netboot server
   lib/lab-meta.sh          # Shared helper: loads labMeta from the flake
+  gui/
+    backend.py             # Local FastAPI backend for the controller dashboard
+    manage-instance-config.sh # Backup/restore/status helper for GUI-owned config
+    export-source-config.nix  # Export current effective config as JSON
+    validate-instance.nix     # Validate candidate GUI config through Nix
   cmd-screensaver.sh       # TTE screensaver animation loop
   launch-screensaver.sh    # Fullscreen Ghostty screensaver launcher
   screensaver-monitor.sh   # GNOME idle watcher for screensaver
   create-home-template.sh  # Home directory template builder
   home-reset.sh            # Boot-time snapshot rotation + home reset
+config/
+  instance.json            # GUI-owned config when present
 assets/
   backgrounds/             # Wallpapers (randomly selected at home reset)
   logo.txt                 # ASCII art for screensaver

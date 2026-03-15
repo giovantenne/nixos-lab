@@ -9,16 +9,24 @@ fi
 
 INSTALL_DISK="${1:-}"
 FLAKE_REF="${FLAKE_REF:-github:giovantenne/nixos-lab}"
-# Derive DISKO_LAYOUT_URL from FLAKE_REF if not explicitly set.
-# Extracts owner/repo from "github:owner/repo" (strips ?ref=... if present).
-if [[ -z "${DISKO_LAYOUT_URL:-}" ]]; then
+MASTER_HOST_NUMBER="${MASTER_HOST_NUMBER:-99}"
+TARGET_HOST="${TARGET_HOST:-pc${MASTER_HOST_NUMBER}}"
+STUDENT_USER="${STUDENT_USER:-student}"
+AVAILABLE_DISKS=()
+DISKO_LAYOUT_URL="${DISKO_LAYOUT_URL:-}"
+DISKO_LAYOUT_PATH="${DISKO_LAYOUT_PATH:-}"
+
+if [[ -z "${DISKO_LAYOUT_PATH}" && "${FLAKE_REF}" == path:* ]]; then
+  DISKO_LAYOUT_PATH="${FLAKE_REF#path:}/lib/disko-layout.nix"
+fi
+
+# Derive DISKO_LAYOUT_URL from FLAKE_REF when using a GitHub flake and when no
+# explicit local path was supplied.
+if [[ -z "${DISKO_LAYOUT_PATH}" && -z "${DISKO_LAYOUT_URL}" && "${FLAKE_REF}" == github:* ]]; then
   OWNER_REPO="${FLAKE_REF#github:}"
   OWNER_REPO="${OWNER_REPO%%\?*}"
   DISKO_LAYOUT_URL="https://raw.githubusercontent.com/${OWNER_REPO}/master/lib/disko-layout.nix"
 fi
-MASTER_HOST_NUMBER="${MASTER_HOST_NUMBER:-99}"
-STUDENT_USER="${STUDENT_USER:-student}"
-AVAILABLE_DISKS=()
 
 # Force the bootstrap install to use the official NixOS cache only.
 # This avoids inheriting substituters from a preconfigured live/netboot
@@ -126,8 +134,20 @@ TEMP_DISKO_LAYOUT=$(mktemp)
 TEMP_DISKO_FILE=$(mktemp)
 trap 'rm -f "$TEMP_DISKO_LAYOUT" "$TEMP_DISKO_FILE"' EXIT
 
-echo "Downloading Disko layout..."
-curl -fsSL "$DISKO_LAYOUT_URL" -o "$TEMP_DISKO_LAYOUT"
+if [[ -n "${DISKO_LAYOUT_PATH}" ]]; then
+  if [[ ! -f "${DISKO_LAYOUT_PATH}" ]]; then
+    echo "Error: local Disko layout '${DISKO_LAYOUT_PATH}' does not exist." >&2
+    exit 1
+  fi
+  echo "Using local Disko layout: ${DISKO_LAYOUT_PATH}"
+  cp "${DISKO_LAYOUT_PATH}" "$TEMP_DISKO_LAYOUT"
+elif [[ -n "${DISKO_LAYOUT_URL}" ]]; then
+  echo "Downloading Disko layout..."
+  curl -fsSL "$DISKO_LAYOUT_URL" -o "$TEMP_DISKO_LAYOUT"
+else
+  echo "Error: unable to resolve Disko layout from FLAKE_REF='${FLAKE_REF}'." >&2
+  exit 1
+fi
 
 # Generate a standalone Disko config with concrete arguments for the selected
 # disk and student user. This avoids patching the text of the NixOS module.
@@ -144,6 +164,6 @@ echo "Partitioning disk..."
 sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko "$TEMP_DISKO_FILE"
 
 echo "Installing NixOS for the controller..."
-sudo nixos-install --flake "${FLAKE_REF}#pc${MASTER_HOST_NUMBER}" --no-write-lock-file --no-root-passwd
+sudo nixos-install --flake "${FLAKE_REF}#${TARGET_HOST}" --no-write-lock-file --no-root-passwd
 
 echo "Installation complete. Reboot with: reboot"

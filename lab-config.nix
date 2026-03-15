@@ -38,6 +38,8 @@
   ifaceName = "enp0s3";
 
   # ── User accounts ─────────────────────────────────────────────
+  # Admin account (sudo + SSH + deployment)
+  adminUser = "admin";
   # Teacher account (gets Veyon Master access + no home reset)
   teacherUser = "teacher";
   # Student account (autologin on client PCs, home reset at boot)
@@ -49,6 +51,54 @@
   teacherPassword = "$6$t.4PBRDwSMnGbuzA$fLuu1n700q.Mvj0ivauGLPQJcfT6XnFMkDh6T0GMWH/hzlSNuzxfh0bxh2iQR027y7PSdzuIvWoO3NgRbM/gV0";
   studentPassword = "$6$t.4PBRDwSMnGbuzA$fLuu1n700q.Mvj0ivauGLPQJcfT6XnFMkDh6T0GMWH/hzlSNuzxfh0bxh2iQR027y7PSdzuIvWoO3NgRbM/gV0";
   adminPassword = "$6$t.4PBRDwSMnGbuzA$fLuu1n700q.Mvj0ivauGLPQJcfT6XnFMkDh6T0GMWH/hzlSNuzxfh0bxh2iQR027y7PSdzuIvWoO3NgRbM/gV0";
+
+  # Additional standard users present on all machines.
+  # Reserved groups such as wheel, docker, and veyon-master are blocked.
+  extraUsers = [];
+
+  # ── Software catalog (optional) ───────────────────────────────
+  # If omitted, defaults reproduce the current package set.
+  #
+  # software = {
+  #   presets = [
+  #     "base-cli"
+  #     "desktop"
+  #     "dev-tools"
+  #     "container"
+  #     "network-admin"
+  #     "publishing"
+  #     "python"
+  #     "lua"
+  #     "java"
+  #     "node"
+  #     "php"
+  #     "browser"
+  #     "editor"
+  #   ];
+  #   hostScopes = {
+  #     controller = [];
+  #     clients = [];
+  #   };
+  #   extraPackages = [];
+  #   vscode.studentPresets = [ "web" "java" ];
+  #   vscode.adminPresets = [];
+  # };
+
+  # Optional feature overrides.
+  #
+  # features.guiBackend = {
+  #   enable = true;
+  #   port = 8088;
+  #   repoRoot = "/home/admin/nixos-lab";
+  # };
+  #
+  # Appliance packaging can override this automatically with:
+  #
+  # features.appliance = {
+  #   enable = true;
+  #   repoRoot = "/var/lib/nixos-lab/repo";
+  #   seedOnBoot = true;
+  # };
 
   # ── School / organization ──────────────────────────────────────
   # Chromium homepage URL

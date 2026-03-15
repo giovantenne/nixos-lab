@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NixOS Lab Control</title>
+    <link rel="stylesheet" href="{{ url_for('ui-static', path='styles.css') }}">
+  </head>
+  <body>
+    <div class="background-orb orb-a"></div>
+    <div class="background-orb orb-b"></div>
+
+    <main class="app-shell">
+      <header class="hero-card">
+        <div class="hero-copy">
+          <p class="eyebrow">Controller-Local Control Plane</p>
+          <h1>NixOS Lab Control</h1>
+          <p class="hero-text">
+            Manage users, software presets, feature flags, validation, builds, and deploys
+            from a single local interface on the controller.
+          </p>
+        </div>
+        <div class="hero-status">
+          <div class="status-tile">
+            <span class="status-label">Config Source</span>
+            <strong id="config-source-label">Loading...</strong>
+            <span class="status-chip" id="config-source-chip">Pending</span>
+          </div>
+          <div class="status-tile">
+            <span class="status-label">Controller</span>
+            <strong id="controller-name">Loading...</strong>
+          </div>
+          <div class="status-tile">
+            <span class="status-label">Smoke Clients</span>
+            <strong id="sample-clients">Loading...</strong>
+          </div>
+          <div class="status-actions">
+            <a class="secondary-link" href="/docs">API Docs</a>
+            <button class="ghost-button" id="refresh-dashboard" type="button">Refresh</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="flash-area" id="flash-area" aria-live="polite"></div>
+
+      <section class="panel-grid">
+        <section class="panel panel-wide">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Configuration</p>
+              <h2>Lab Definition</h2>
+            </div>
+            <div class="panel-actions">
+              <button class="ghost-button" id="reload-config" type="button">Reload Config</button>
+              <button class="primary-button" form="config-form" type="submit">Save Config</button>
+            </div>
+          </div>
+
+          <form id="config-form" class="stack-grid">
+            <section class="card-section">
+              <div class="section-title-row">
+                <div>
+                  <h3>Core Accounts</h3>
+                  <p>Passwords can be left blank to keep the current hash.</p>
+                </div>
+                <span class="helper-pill">Admin, Teacher, Student stay first-class roles</span>
+              </div>
+              <div class="card-grid" id="core-users-grid"></div>
+            </section>
+
+            <section class="card-section">
+              <div class="section-title-row">
+                <div>
+                  <h3>Extra Users</h3>
+                  <p>Additional users stay standard by default and exist on all machines.</p>
+                </div>
+                <button class="ghost-button" id="add-extra-user" type="button">Add User</button>
+              </div>
+              <div class="dynamic-stack" id="extra-users-list"></div>
+            </section>
+
+            <section class="card-section">
+              <div class="section-title-row">
+                <div>
+                  <h3>Software Catalog</h3>
+                  <p>Curated presets drive packages, browsers, editor toggles, and VS Code extensions.</p>
+                </div>
+              </div>
+              <div class="subsection-grid">
+                <div class="sub-card">
+                  <h4>Global Presets</h4>
+                  <div class="option-grid" id="software-presets-grid"></div>
+                </div>
+                <div class="sub-card">
+                  <h4>Controller-Only Presets</h4>
+                  <div class="option-grid" id="software-controller-grid"></div>
+                </div>
+                <div class="sub-card">
+                  <h4>Client-Only Presets</h4>
+                  <div class="option-grid" id="software-client-grid"></div>
+                </div>
+                <div class="sub-card">
+                  <h4>Student VS Code Presets</h4>
+                  <div class="option-grid" id="student-vscode-grid"></div>
+                </div>
+                <div class="sub-card">
+                  <h4>Admin VS Code Presets</h4>
+                  <div class="option-grid" id="admin-vscode-grid"></div>
+                </div>
+                <div class="sub-card">
+                  <h4>Custom Lists</h4>
+                  <label>
+                    <span>Extra Package Names</span>
+                    <textarea id="software-extra-packages" rows="3" placeholder="jq&#10;htop"></textarea>
+                  </label>
+                  <label>
+                    <span>Student Favorites</span>
+                    <textarea id="software-student-favorites" rows="3" placeholder="ghostty.desktop&#10;chromium-browser.desktop"></textarea>
+                  </label>
+                  <label>
+                    <span>Staff Favorites</span>
+                    <textarea id="software-staff-favorites" rows="3" placeholder="ghostty.desktop&#10;code.desktop"></textarea>
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            <section class="card-section">
+              <div class="section-title-row">
+                <div>
+                  <h3>Feature Flags</h3>
+                  <p>Toggle optional subsystems without editing Nix directly.</p>
+                </div>
+              </div>
+              <div class="feature-grid" id="feature-grid"></div>
+              <div class="inline-fields">
+                <label>
+                  <span>GUI Backend Port</span>
+                  <input id="gui-backend-port" min="1" max="65535" step="1" type="number">
+                </label>
+              </div>
+            </section>
+
+            <details class="card-section details-block">
+              <summary>Network and Host Settings</summary>
+              <div class="details-grid">
+                <label>
+                  <span>Controller DHCP IP</span>
+                  <input id="network-master-dhcp-ip" type="text">
+                </label>
+                <label>
+                  <span>Lab Network Base</span>
+                  <input id="network-base" type="text">
+                </label>
+                <label>
+                  <span>Controller Host Number</span>
+                  <input id="network-master-host-number" min="1" step="1" type="number">
+                </label>
+                <label>
+                  <span>Shared Interface</span>
+                  <input id="network-iface-name" type="text">
+                </label>
+                <label>
+                  <span>Controller Hostname</span>
+                  <input id="controller-host-name" type="text">
+                </label>
+                <label>
+                  <span>Client Count</span>
+                  <input id="clients-count" min="1" step="1" type="number">
+                </label>
+                <label>
+                  <span>Client Prefix</span>
+                  <input id="clients-prefix" type="text">
+                </label>
+                <label>
+                  <span>Client Pad Width</span>
+                  <input id="clients-pad-to" min="1" step="1" type="number">
+                </label>
+              </div>
+            </details>
+
+            <details class="card-section details-block">
+              <summary>Organization and Locale</summary>
+              <div class="details-grid">
+                <label>
+                  <span>Homepage URL</span>
+                  <input id="org-homepage-url" type="url">
+                </label>
+                <label>
+                  <span>Student Git Name</span>
+                  <input id="org-student-git-name" type="text">
+                </label>
+                <label>
+                  <span>Student Git Email</span>
+                  <input id="org-student-git-email" type="email">
+                </label>
+                <label>
+                  <span>Admin Git Name</span>
+                  <input id="org-admin-git-name" type="text">
+                </label>
+                <label>
+                  <span>Admin Git Email</span>
+                  <input id="org-admin-git-email" type="email">
+                </label>
+                <label>
+                  <span>Time Zone</span>
+                  <input id="locale-time-zone" type="text">
+                </label>
+                <label>
+                  <span>Default Locale</span>
+                  <input id="locale-default-locale" type="text">
+                </label>
+                <label>
+                  <span>Extra Locale</span>
+                  <input id="locale-extra-locale" type="text">
+                </label>
+                <label>
+                  <span>Keyboard Layout</span>
+                  <input id="locale-keyboard-layout" type="text">
+                </label>
+                <label>
+                  <span>Console Keymap</span>
+                  <input id="locale-console-keymap" type="text">
+                </label>
+              </div>
+            </details>
+          </form>
+        </section>
+
+        <section class="panel panel-side">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Operations</p>
+              <h2>Validate, Build, Deploy</h2>
+            </div>
+          </div>
+
+          <div class="action-stack">
+            <button class="primary-button" id="run-validate" type="button">Run Validate</button>
+            <div class="build-actions" id="build-actions"></div>
+            <div class="deploy-actions">
+              <button class="ghost-button" id="deploy-controller" type="button">Deploy Controller</button>
+              <button class="ghost-button" id="deploy-all" type="button">Deploy All</button>
+              <div class="inline-fields compact">
+                <label>
+                  <span>Deploy One Host</span>
+                  <select id="deploy-host-select"></select>
+                </label>
+                <button class="ghost-button" id="deploy-host" type="button">Deploy Host</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="jobs-header">
+            <h3>Jobs</h3>
+            <button class="ghost-button" id="refresh-jobs" type="button">Refresh Jobs</button>
+          </div>
+          <div class="jobs-list" id="jobs-list"></div>
+
+          <div class="log-panel">
+            <div class="log-header">
+              <h3>Selected Log</h3>
+              <button class="ghost-button" id="refresh-log" type="button">Refresh Log</button>
+            </div>
+            <pre id="job-log">Select a job to inspect its log.</pre>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script id="lab-gui-bootstrap" type="application/json">{{ bootstrap | tojson }}</script>
+    <script src="{{ url_for('ui-static', path='app.js') }}"></script>
+  </body>
+</html>

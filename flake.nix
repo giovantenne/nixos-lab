@@ -26,40 +26,48 @@
       veyonPublicKeyFile = ./veyon-public-key.pem;
       hasVeyonPublicKey = builtins.pathExists veyonPublicKeyFile;
 
-      # ── Import lab configuration ─────────────────────────────────
-      # Edit lab-config.nix to customize for your environment.
-      config = import ./lab-config.nix;
+      guiInstanceConfigFile = ./config/instance.json;
+      rawConfig =
+        if builtins.pathExists guiInstanceConfigFile then
+          builtins.fromJSON (builtins.readFile guiInstanceConfigFile)
+        else
+          import ./lab-config.nix;
+      normalizedConfig = import ./lib/normalize-config.nix {
+        lib = nixpkgs.lib;
+        inherit rawConfig;
+        inherit cachePublicKey;
+        inherit adminSshKey;
+      };
+      inherit (normalizedConfig) labConfig;
+      inherit (normalizedConfig) labSettings;
+      inherit (normalizedConfig) labMeta;
+      sourceConfig = import ./lib/source-config.nix { inherit labConfig; };
 
-      inherit (config) masterDhcpIp;
-      inherit (config) networkBase;
-      inherit (config) pcCount;
-      inherit (config) masterHostNumber;
-      inherit (config) ifaceName;
-      inherit (config) teacherUser;
-      inherit (config) studentUser;
-      inherit (config) teacherPassword;
-      inherit (config) studentPassword;
-      inherit (config) adminPassword;
-      inherit (config) homepageUrl;
-      inherit (config) studentGitName;
-      inherit (config) studentGitEmail;
-      inherit (config) adminGitName;
-      inherit (config) adminGitEmail;
-      inherit (config) timeZone;
-      inherit (config) defaultLocale;
-      inherit (config) extraLocale;
-      inherit (config) keyboardLayout;
-      inherit (config) consoleKeyMap;
-
-      masterHostName = "pc${toString masterHostNumber}";
-      masterIp = "${networkBase}.${toString masterHostNumber}";
-      cachePort = 5000;
-      pxeHttpPort = 8080;
+      applianceRawConfig = nixpkgs.lib.recursiveUpdate rawConfig {
+        features = {
+          guiBackend = {
+            repoRoot = "/var/lib/nixos-lab/repo";
+          };
+          appliance = {
+            enable = true;
+            repoRoot = "/var/lib/nixos-lab/repo";
+            seedOnBoot = true;
+          };
+        };
+      };
+      applianceNormalizedConfig = import ./lib/normalize-config.nix {
+        lib = nixpkgs.lib;
+        rawConfig = applianceRawConfig;
+        inherit cachePublicKey;
+        inherit adminSshKey;
+      };
+      applianceLabConfig = applianceNormalizedConfig.labConfig;
+      applianceLabSettings = applianceNormalizedConfig.labSettings;
+      applianceSourceConfig = import ./lib/source-config.nix { labConfig = applianceLabConfig; };
 
       system = "x86_64-linux";
-      pcNumbers = builtins.genList (n: n + 1) pcCount;
-      clientNumbers = pcNumbers;
-      padNumber = n: if n < 10 then "0${toString n}" else toString n;
+      controllerHost = labConfig.hosts.controller;
+      clientHosts = labConfig.hosts.clients.list;
 
       # Overlay: packages not available in nixpkgs or needing patches
       labOverlay = final: prev: {
@@ -68,7 +76,12 @@
         gnome-remote-desktop = import ./pkgs/gnome-remote-desktop.nix { inherit prev; };
       };
 
-      hostModules = [
+      checkPkgs = import nixpkgs {
+        inherit system;
+        overlays = [ labOverlay ];
+      };
+
+      baseHostModules = [
         { nixpkgs.overlays = [ labOverlay ]; }
         ({ lib, ... }: {
           warnings =
@@ -79,125 +92,157 @@
         disko.nixosModules.disko
         ./disko-uefi.nix
         ./modules/hardware.nix
-        ./modules/common.nix
-        ./modules/users.nix
+        ./modules/base/common.nix
+        ./modules/software/packages.nix
+        ./modules/users
         ./modules/networking.nix
-        ./modules/cache.nix
         ./modules/filesystems.nix
-        ./modules/home-reset.nix
-        ./modules/veyon.nix
+        ./modules/features/appliance-layout.nix
+        ./modules/features/cache.nix
+        ./modules/features/gui-backend.nix
+        ./modules/features/home-reset.nix
+        ./modules/features/screensaver.nix
+        ./modules/features/veyon.nix
       ];
 
-      labSettings = {
-        inherit masterIp;
-        inherit masterDhcpIp;
-        inherit masterHostName;
-        inherit masterHostNumber;
-        inherit networkBase;
-        inherit pcCount;
-        inherit ifaceName;
-        inherit teacherUser;
-        inherit studentUser;
-        inherit teacherPassword;
-        inherit studentPassword;
-        inherit adminPassword;
-        inherit adminSshKey;
-        inherit homepageUrl;
-        inherit studentGitName;
-        inherit studentGitEmail;
-        inherit adminGitName;
-        inherit adminGitEmail;
-        inherit timeZone;
-        inherit defaultLocale;
-        inherit extraLocale;
-        inherit keyboardLayout;
-        inherit consoleKeyMap;
-        inherit cachePublicKey;
-        inherit cachePort;
+      profileModules = {
+        controller = ./modules/profiles/controller.nix;
+        client = ./modules/profiles/client.nix;
       };
-      labMeta = {
-        schemaVersion = 1;
-        controller = {
-          name = masterHostName;
-          number = masterHostNumber;
-          staticIp = masterIp;
-          dhcpIp = masterDhcpIp;
-        };
-        clients = {
-          count = pcCount;
-        };
-        network = {
-          base = networkBase;
-          inherit ifaceName;
-          inherit cachePort;
-          inherit pxeHttpPort;
-        };
-        users = {
-          student = studentUser;
-          teacher = teacherUser;
+
+      mkModules = host:
+        baseHostModules ++ [
+          profileModules.${host.profile}
+        ];
+
+      mkSpecialArgsFrom = config: settings: exportedSourceConfig: host: {
+        labConfig = config;
+        labSettings = settings;
+        hostIp = host.ip;
+        hostName = host.name;
+        hostProfile = host.profile;
+        flakeSource = self;
+        applianceSourceConfig = exportedSourceConfig;
+      };
+
+      mkSpecialArgs = host: mkSpecialArgsFrom labConfig labSettings sourceConfig host;
+      mkApplianceSpecialArgs = host: mkSpecialArgsFrom applianceLabConfig applianceLabSettings applianceSourceConfig host;
+
+      mkHostFrom = specialArgsFor: host: {
+        name = host.name;
+        value = nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = specialArgsFor host;
+          modules = mkModules host;
         };
       };
-      mkHost = n:
-        let
-          name = "pc${padNumber n}";
-          hostIp = "${networkBase}.${toString n}";
-        in
-        {
-          inherit name;
-          value = nixpkgs.lib.nixosSystem {
-            inherit system;
-            specialArgs = {
-              inherit labSettings;
-              inherit hostIp;
-              hostName = name;
-            };
-            modules = hostModules;
+
+      mkHost = host: mkHostFrom mkSpecialArgs host;
+
+      mkColmenaHost = host: {
+        name = host.name;
+        value = {
+          _module.args = mkSpecialArgs host;
+          imports = mkModules host;
+          deployment = {
+            targetHost = host.ip;
+            tags = [ "lab" ];
           };
         };
-      mkColmenaHost = n:
-        let
-          name = "pc${padNumber n}";
-          hostIp = "${networkBase}.${toString n}";
-          address = hostIp;
-        in
-        {
-          inherit name;
-          value = {
-            _module.args = {
-              inherit labSettings;
-              inherit hostIp;
-              hostName = name;
-            };
-            imports = hostModules;
-            deployment = {
-              targetHost = address;
-              tags = [ "lab" ];
+      };
+
+      normalizeForTests = fixture:
+        import ./lib/normalize-config.nix {
+          lib = nixpkgs.lib;
+          rawConfig = fixture;
+          cachePublicKey = "lab-cache-key:test";
+          adminSshKey = "ssh-ed25519 AAAATEST admin@test";
+        };
+
+      legacyFixture = import ./tests/fixtures/legacy-config.nix;
+      legacyNormalized = normalizeForTests legacyFixture;
+      applianceLegacyNormalized = import ./lib/normalize-config.nix {
+        lib = nixpkgs.lib;
+        rawConfig = nixpkgs.lib.recursiveUpdate legacyFixture {
+          features = {
+            appliance = {
+              enable = true;
+              repoRoot = "/var/lib/nixos-lab/repo";
+              seedOnBoot = true;
             };
           };
         };
+        cachePublicKey = "lab-cache-key:test";
+        adminSshKey = "ssh-ed25519 AAAATEST admin@test";
+      };
+      conflictFixture = import ./tests/fixtures/conflict-extra-users.nix;
+      conflictNormalization = builtins.tryEval (builtins.deepSeq (normalizeForTests conflictFixture) true);
     in
-    assert masterHostNumber > pcCount
-      || throw "masterHostNumber (${toString masterHostNumber}) must be greater than pcCount (${toString pcCount})";
     {
-      nixosConfigurations = builtins.listToAttrs (map mkHost pcNumbers) // {
-        ${masterHostName} = nixpkgs.lib.nixosSystem {
+      nixosConfigurations = builtins.listToAttrs (map mkHost clientHosts) // {
+        ${controllerHost.name} = nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = mkSpecialArgs controllerHost;
+          modules = mkModules controllerHost;
+        };
+        controller-appliance = nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = mkApplianceSpecialArgs controllerHost;
+          modules = mkModules controllerHost;
+        };
+        controller-installer = nixpkgs.lib.nixosSystem {
           inherit system;
           specialArgs = {
-            inherit labSettings;
-            hostIp = "${networkBase}.${toString masterHostNumber}";
-            hostName = masterHostName;
+            labConfig = applianceLabConfig;
+            labSettings = applianceLabSettings;
+            flakeSource = self;
+            applianceSourceConfig = applianceSourceConfig;
           };
-          modules = hostModules;
+          modules = [
+            "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+            ({ pkgs, lib, ... }:
+              let
+                installLabController = pkgs.writeShellScriptBin "install-lab-controller" ''
+                  export FLAKE_REF='path:/installer/nixos-lab'
+                  export DISKO_LAYOUT_PATH='/installer/nixos-lab/lib/disko-layout.nix'
+                  export TARGET_HOST='controller-appliance'
+                  exec ${pkgs.bash}/bin/bash /installer/nixos-lab/scripts/install-controller.sh "$@"
+                '';
+              in
+              {
+                networking.hostName = "controller-installer";
+                environment.systemPackages = [
+                  installLabController
+                  disko.packages.${system}.default
+                  pkgs.curl
+                  pkgs.git
+                  pkgs.jq
+                ];
+                system.stateVersion = "25.11";
+                system.activationScripts.copyFlakeToInstaller.text = ''
+                  install -d -m 0755 /installer
+                  cp -a ${self}/. /installer/nixos-lab
+                '';
+                documentation.nixos.enable = false;
+                image.baseName = lib.mkForce "nixos-lab-controller-installer";
+                image.fileName = lib.mkForce "nixos-lab-controller-installer.iso";
+              })
+          ];
         };
         netboot = nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs = { inherit labSettings; };
+          specialArgs = {
+            inherit labConfig;
+            inherit labSettings;
+          };
           modules = [
             "${nixpkgs}/nixos/modules/installer/netboot/netboot-minimal.nix"
-            ./modules/cache.nix
+            ./modules/features/cache.nix
             ({ pkgs, lib, ... }: {
               # During netboot the master is only reachable on its DHCP address
-              nix.settings.substituters = lib.mkForce [ "http://${masterDhcpIp}:${toString labSettings.cachePort}" ];
+              nix.settings.substituters = lib.mkForce [
+                "http://${labConfig.network.masterDhcpIp}:${toString labSettings.cachePort}"
+              ];
               networking.useDHCP = lib.mkForce true;
               services.openssh.enable = true;
               environment.systemPackages = [
@@ -216,13 +261,43 @@
 
       inherit labMeta;
 
+      checks.${system} = {
+        normalize-config = checkPkgs.runCommand "normalize-config" {} ''
+          test "${legacyNormalized.labSettings.adminUser}" = "labadmin"
+          test "${legacyNormalized.labSettings.teacherUser}" = "teacher"
+          test "${legacyNormalized.labSettings.studentUser}" = "student"
+          test "${toString legacyNormalized.labSettings.pcCount}" = "3"
+          test "${builtins.elemAt legacyNormalized.labMeta.users.extraUsers 0}" = "alice"
+          test "${builtins.elemAt legacyNormalized.labConfig.software.presets 0}" = "base-cli"
+          test "${builtins.elemAt legacyNormalized.labConfig.software.vscode.studentPresets 1}" = "java"
+          test "${builtins.elemAt legacyNormalized.labConfig.software.desktop.studentFavorites 2}" = "code.desktop"
+          test "${toString legacyNormalized.labConfig.features.guiBackend.port}" = "8088"
+          test "${legacyNormalized.labConfig.features.guiBackend.repoRoot}" = "/home/labadmin/nixos-lab"
+          test "${applianceLegacyNormalized.labConfig.features.appliance.repoRoot}" = "/var/lib/nixos-lab/repo"
+          test "${if applianceLegacyNormalized.labConfig.features.appliance.enable then "true" else "false"}" = "true"
+          touch "$out"
+        '';
+
+        validate-extra-users = checkPkgs.runCommand "validate-extra-users" {} ''
+          test "${if conflictNormalization.success then "unexpected-success" else "failed-as-expected"}" = "failed-as-expected"
+          touch "$out"
+        '';
+      };
+
+      packages.${system} = {
+        controller-installer = self.nixosConfigurations.controller-installer.config.system.build.isoImage;
+      };
+
       colmena = {
         meta = {
           nixpkgs = import nixpkgs {
             inherit system;
             overlays = [ labOverlay ];
           };
-          specialArgs = { inherit labSettings; };
+          specialArgs = {
+            inherit labConfig;
+            inherit labSettings;
+          };
         };
         defaults = {
           deployment = {
@@ -231,18 +306,14 @@
           };
         };
         # Controller deploys to itself locally
-        ${masterHostName} = {
-          _module.args = {
-            inherit labSettings;
-            hostIp = "${networkBase}.${toString masterHostNumber}";
-            hostName = masterHostName;
-          };
-          imports = hostModules;
+        ${controllerHost.name} = {
+          _module.args = mkSpecialArgs controllerHost;
+          imports = mkModules controllerHost;
           deployment = {
             targetHost = "localhost";
             tags = [ "master" ];
           };
         };
-      } // builtins.listToAttrs (map mkColmenaHost clientNumbers);
+      } // builtins.listToAttrs (map mkColmenaHost clientHosts);
     };
 }

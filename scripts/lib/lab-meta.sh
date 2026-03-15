@@ -48,6 +48,13 @@ load_lab_meta() {
     LAB_IFACE_NAME \
     LAB_CACHE_PORT \
     LAB_PXE_HTTP_PORT \
+    LAB_GUI_BACKEND_ENABLED \
+    LAB_GUI_BACKEND_HOST \
+    LAB_GUI_BACKEND_PORT \
+    LAB_GUI_BACKEND_REPO_ROOT \
+    LAB_APPLIANCE_ENABLED \
+    LAB_APPLIANCE_REPO_ROOT \
+    LAB_APPLIANCE_SEED_ON_BOOT \
     LAB_STUDENT_USER \
     LAB_TEACHER_USER \
     <<< "$(printf '%s' "${LAB_META_JSON}" | jq -er '
@@ -62,6 +69,13 @@ load_lab_meta() {
         .network.ifaceName,
         (.network.cachePort | tostring),
         (.network.pxeHttpPort | tostring),
+        (.services.guiBackend.enabled | tostring),
+        .services.guiBackend.host,
+        (.services.guiBackend.port | tostring),
+        .services.guiBackend.repoRoot,
+        (.services.appliance.enabled | tostring),
+        .services.appliance.repoRoot,
+        (.services.appliance.seedOnBoot | tostring),
         .users.student,
         .users.teacher
       ] | @tsv
@@ -82,6 +96,13 @@ load_lab_meta() {
   export LAB_IFACE_NAME
   export LAB_CACHE_PORT
   export LAB_PXE_HTTP_PORT
+  export LAB_GUI_BACKEND_ENABLED
+  export LAB_GUI_BACKEND_HOST
+  export LAB_GUI_BACKEND_PORT
+  export LAB_GUI_BACKEND_REPO_ROOT
+  export LAB_APPLIANCE_ENABLED
+  export LAB_APPLIANCE_REPO_ROOT
+  export LAB_APPLIANCE_SEED_ON_BOOT
   export LAB_STUDENT_USER
   export LAB_TEACHER_USER
 }
